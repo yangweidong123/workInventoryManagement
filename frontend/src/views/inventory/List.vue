@@ -212,7 +212,7 @@
 
 <script>
 import { mapState, mapActions } from 'vuex'
-import { importExcel, exportExcel } from '@/api/inventory'
+import { importExcel, exportExcel, list } from '@/api/inventory'
 import { create } from '@/api/package'
 import { Message, MessageBox } from 'element-ui'
 
@@ -347,7 +347,7 @@ export default {
     async searchPackageItems() {
       this.packageItemsLoading = true
       try {
-        const res = await this.fetchPackageItems(this.packageQueryForm)
+        const res = await list(this.packageQueryForm)
         this.packageItems = res.data.records.map(item => ({
           ...item,
           selected: this.selectedItems.some(s => s.id === item.id),
@@ -359,10 +359,6 @@ export default {
       } finally {
         this.packageItemsLoading = false
       }
-    },
-    async fetchPackageItems(params) {
-      const res = await this.$store.dispatch('inventory/fetchList', params)
-      return res
     },
     toggleItemSelection(row) {
       if (row.selected) {
