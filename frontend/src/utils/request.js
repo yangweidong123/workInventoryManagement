@@ -30,10 +30,17 @@ request.interceptors.response.use(
     return res
   },
   error => {
-    if (error.response && error.response.status === 401) {
-      Message.error('登录已过期，请重新登录')
-      localStorage.clear()
-      router.push('/login')
+    if (error.response) {
+      const data = error.response.data
+      if (error.response.status === 401) {
+        Message.error('登录已过期，请重新登录')
+        localStorage.clear()
+        router.push('/login')
+      } else if (data && data.message) {
+        Message.error(data.message)
+      } else {
+        Message.error(error.message || '网络错误')
+      }
     } else {
       Message.error(error.message || '网络错误')
     }

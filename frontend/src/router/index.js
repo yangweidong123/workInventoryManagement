@@ -21,32 +21,32 @@ const routes = [
     meta: { requiresAuth: true },
     children: [
       {
-        path: 'inventory',
+        path: '/inventory',
         name: 'Inventory',
         component: () => import('@/views/inventory/List.vue')
       },
       {
-        path: 'inventory/form',
+        path: '/inventory/form',
         name: 'InventoryForm',
         component: () => import('@/views/inventory/Form.vue')
       },
       {
-        path: 'inventory/form/:id',
+        path: '/inventory/form/:id',
         name: 'InventoryEdit',
         component: () => import('@/views/inventory/Form.vue')
       },
       {
-        path: 'package',
+        path: '/package',
         name: 'Package',
         component: () => import('@/views/package/List.vue')
       },
       {
-        path: 'package/form',
+        path: '/package/form',
         name: 'PackageForm',
         component: () => import('@/views/package/Form.vue')
       },
       {
-        path: 'package/form/:id',
+        path: '/package/form/:id',
         name: 'PackageEdit',
         component: () => import('@/views/package/Form.vue')
       }
