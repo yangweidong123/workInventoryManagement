@@ -31,16 +31,6 @@ const routes = [
         component: () => import('@/views/inventory/Form.vue')
       },
       {
-        path: '/inventory/form/:id',
-        name: 'InventoryEdit',
-        component: () => import('@/views/inventory/Form.vue')
-      },
-      {
-        path: '/inventory/create-package',
-        name: 'CreatePackageFromInventory',
-        component: () => import('@/views/inventory/CreatePackage.vue')
-      },
-      {
         path: '/package',
         name: 'Package',
         component: () => import('@/views/package/List.vue')
@@ -54,6 +44,11 @@ const routes = [
         path: '/package/form/:id',
         name: 'PackageEdit',
         component: () => import('@/views/package/Form.vue')
+      },
+      {
+        path: '/inventory/form/:id',
+        name: 'InventoryEdit',
+        component: () => import('@/views/inventory/Form.vue')
       }
     ]
   }
