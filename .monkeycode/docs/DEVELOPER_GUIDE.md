@@ -357,7 +357,6 @@ CREATE TABLE inventory (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     style_no VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(100) NOT NULL,
-    image TEXT,
     size_mm VARCHAR(50),
     weight_kg DECIMAL(10,3),
     box_spec INT DEFAULT 1,
@@ -369,6 +368,16 @@ CREATE TABLE inventory (
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_style_no (style_no),
     INDEX idx_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE inventory_image (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    inventory_id BIGINT NOT NULL,
+    image_url TEXT NOT NULL,
+    sort INT DEFAULT 0,
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (inventory_id) REFERENCES inventory(id) ON DELETE CASCADE,
+    INDEX idx_inventory_id (inventory_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE package (

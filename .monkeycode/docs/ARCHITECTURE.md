@@ -57,18 +57,16 @@ inventory-management/
 
 | 模块 | 职责 | 主要组件 |
 |------|------|----------|
-| 库存管理 | 商品信息的增删改查 | InventoryList, InventoryForm, ImportDialog |
+| 库存管理 | 商品信息及图片管理，支持单品录入、批量导入 | InventoryList, InventoryForm, ImportDialog, ImageUpload |
 | 套餐管理 | 套餐组合和毛利率计算 | PackageList, PackageForm, PackageDetail |
-| 图片管理 | 图片上传和预览 | ImageUpload, ImagePreview |
 
 ### 后端模块
 
 | 模块 | 职责 | 主要类 |
 |------|------|--------|
-| InventoryService | 库存商品业务逻辑 | InventoryServiceImpl |
+| InventoryService | 库存商品及图片业务逻辑 | InventoryServiceImpl, ImageServiceImpl |
 | PackageService | 套餐组合业务逻辑 | PackageServiceImpl |
 | ExcelService | Excel 导入导出 | ExcelImportService |
-| ImageService | 图片存储服务 | ImageServiceImpl |
 
 ## 架构图
 
@@ -169,7 +167,6 @@ flowchart LR
 | id | BIGINT | 主键 |
 | style_no | VARCHAR(50) | 款号（唯一） |
 | name | VARCHAR(100) | 品名 |
-| image | TEXT | 图片 Base64/MinIO URL |
 | size_mm | VARCHAR(50) | 产品尺寸 |
 | weight_kg | DECIMAL(10,3) | 参考裸重 |
 | box_spec | INT | 箱规 |
@@ -179,6 +176,16 @@ flowchart LR
 | quantity | INT | 数量 |
 | create_time | DATETIME | 创建时间 |
 | update_time | DATETIME | 更新时间 |
+
+### 商品图片表 (inventory_image)
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGINT | 主键 |
+| inventory_id | BIGINT | 商品 ID（外键） |
+| image_url | TEXT | 图片 Base64/MinIO URL |
+| sort | INT | 排序序号 |
+| create_time | DATETIME | 创建时间 |
 
 ### 套餐表 (package)
 

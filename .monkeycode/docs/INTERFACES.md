@@ -72,6 +72,10 @@ GET /api/inventory
         "id": 1,
         "styleNo": "STY001",
         "name": "黄金手镯",
+        "images": [
+          {"id": 1, "imageUrl": "data:image/jpeg;base64,...", "sort": 1},
+          {"id": 2, "imageUrl": "data:image/jpeg;base64,...", "sort": 2}
+        ],
         "sizeMm": "56圈口",
         "weightKg": 15.5,
         "boxSpec": 1,
@@ -102,7 +106,10 @@ POST /api/inventory
 {
   "styleNo": "STY001",
   "name": "黄金手镯",
-  "image": "data:image/jpeg;base64,...",
+  "images": [
+    {"imageUrl": "data:image/jpeg;base64,...", "sort": 1},
+    {"imageUrl": "data:image/jpeg;base64,...", "sort": 2}
+  ],
   "sizeMm": "56圈口",
   "weightKg": 15.5,
   "boxSpec": 1,
@@ -116,6 +123,7 @@ POST /api/inventory
 **校验规则**
 - styleNo: 必填，最大 50 字符，唯一
 - name: 必填，最大 100 字符
+- images: 可选，数组，每个元素包含 imageUrl 和 sort
 - priceExclTax/guidePrice/minPrice: 必填，必须为正数
 - quantity: 必填，必须为整数
 
@@ -142,7 +150,10 @@ PUT /api/inventory/{id}
 ```json
 {
   "name": "黄金手镯（升级版）",
-  "image": "data:image/jpeg;base64,...",
+  "images": [
+    {"imageUrl": "data:image/jpeg;base64,...", "sort": 1},
+    {"imageUrl": "data:image/jpeg;base64,...", "sort": 2}
+  ],
   "sizeMm": "56圈口",
   "weightKg": 16.0,
   "boxSpec": 1,
@@ -153,7 +164,7 @@ PUT /api/inventory/{id}
 }
 ```
 
-**说明**: 款号不允许修改
+**说明**: 款号不允许修改；图片会整体替换
 
 ### 4. 删除商品
 
@@ -187,8 +198,10 @@ Content-Type: multipart/form-data
 
 **Excel 模板格式**
 
-| 款号 | 品名 | 产品尺寸 | 参考裸重(KG) | 箱规 | 不含税拿货价 | 市场指导价 | 市场最低控价 | 数量 | 图片(Base64) |
-|------|------|----------|--------------|------|-------------|-----------|-------------|------|-------------|
+| 款号 | 品名 | 产品尺寸 | 参考裸重(KG) | 箱规 | 不含税拿货价 | 市场指导价 | 市场最低控价 | 数量 | 图片1(Base64) | 图片2(Base64) | ... |
+|------|------|----------|--------------|------|-------------|-----------|-------------|------|--------------|---------------|-----|
+
+**说明**: 支持导入多张图片，图片列依次为图片1、图片2等
 
 **响应示例**
 ```json
@@ -216,6 +229,67 @@ GET /api/inventory/template
 ```
 
 **响应**: 返回 Excel 文件流
+
+### 7. 上传商品图片
+
+**请求**
+```
+POST /api/inventory/{inventoryId}/images
+Content-Type: multipart/form-data
+```
+
+**Form 参数**
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| file | File | 是 | 图片文件 |
+| sort | int | 否 | 排序序号，默认追加到最后 |
+
+**响应**
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "id": 1,
+    "inventoryId": 1,
+    "imageUrl": "http://minio:9000/inventory/xxx.jpg",
+    "sort": 1
+  }
+}
+```
+
+### 8. 删除商品图片
+
+**请求**
+```
+DELETE /api/inventory/{inventoryId}/images/{imageId}
+```
+
+**响应**
+```json
+{
+  "code": 200,
+  "message": "删除成功",
+  "data": null
+}
+```
+
+### 9. 设置商品封面
+
+**请求**
+```
+PUT /api/inventory/{inventoryId}/images/{imageId}/cover
+```
+
+**响应**
+```json
+{
+  "code": 200,
+  "message": "设置成功",
+  "data": null
+}
+```
 
 ---
 
@@ -379,15 +453,19 @@ GET /api/package/{id}
 
 ---
 
-## 图片上传说明
+## 图片存储说明
+
+### 存储方式
+
+每件商品可存储多张图片，通过 `inventory_image` 表管理。
 
 ### Base64 方式
 
-将图片转为 Base64 字符串，直接存储到数据库字段。
+将图片转为 Base64 字符串，存储到 `image_url` 字段。
 
 ```json
 {
-  "image": "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+  "imageUrl": "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
 }
 ```
 
@@ -397,13 +475,14 @@ GET /api/package/{id}
 
 **请求**
 ```
-POST /api/upload/image
+POST /api/inventory/{inventoryId}/images
 Content-Type: multipart/form-data
 ```
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | file | File | 是 | 图片文件 |
+| sort | int | 否 | 排序序号 |
 
 **响应**
 ```json
@@ -411,7 +490,14 @@ Content-Type: multipart/form-data
   "code": 200,
   "message": "success",
   "data": {
-    "url": "http://minio:9000/inventory/xxx.jpg"
+    "id": 1,
+    "inventoryId": 1,
+    "imageUrl": "http://minio:9000/inventory/xxx.jpg",
+    "sort": 1
   }
 }
 ```
+
+---
+
+## 错误码定义
