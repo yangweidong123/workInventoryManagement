@@ -38,9 +38,9 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="操作" width="200" fixed="right">
           <template slot-scope="{ row }">
-            <el-button type="primary" link @click="goToForm(row.id)">编辑</el-button>
+            <el-button type="primary" link @click="goToEdit(row.id)">编辑</el-button>
             <el-button type="success" link @click="handleSell(row)">销售</el-button>
             <el-button type="danger" link @click="handleDelete(row.id)">删除</el-button>
           </template>
@@ -131,12 +131,11 @@ export default {
     handleCurrentChange() {
       this.fetchList(this.queryForm)
     },
-    goToForm(id) {
-      if (id) {
-        this.$router.push(`/package/form/${id}`)
-      } else {
-        this.$router.push('/package/form')
-      }
+    goToForm() {
+      this.$router.push('/package/form')
+    },
+    goToEdit(id) {
+      this.$router.push(`/package/edit/${id}`)
     },
     async handleDelete(id) {
       try {
@@ -218,5 +217,9 @@ export default {
 
 .profit-rate.normal {
   color: #67c23a;
+}
+
+::v-deep .el-button + .el-button {
+  margin-left: 0;
 }
 </style>

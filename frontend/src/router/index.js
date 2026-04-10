@@ -46,7 +46,7 @@ const routes = [
         component: () => import('@/views/package/Form.vue')
       },
       {
-        path: '/package/form/:id',
+        path: '/package/edit/:id',
         name: 'PackageEdit',
         component: () => import('@/views/package/Form.vue')
       }
