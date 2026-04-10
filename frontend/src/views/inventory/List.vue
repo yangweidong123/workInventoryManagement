@@ -54,7 +54,7 @@
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template slot-scope="{ row }">
-            <el-button type="primary" link @click="goToForm(row.id)">编辑</el-button>
+            <el-button type="primary" link @click="goToEdit(row.id)">编辑</el-button>
             <el-button type="danger" link @click="handleDelete(row.id)">删除</el-button>
           </template>
         </el-table-column>
@@ -252,12 +252,11 @@ export default {
     handleCurrentChange() {
       this.fetchList(this.queryForm)
     },
-    goToForm(id) {
-      if (id) {
-        this.$router.push(`/inventory/form/${id}`)
-      } else {
-        this.$router.push('/inventory/form')
-      }
+    goToForm() {
+      this.$router.push('/inventory/form')
+    },
+    goToEdit(id) {
+      this.$router.push(`/inventory/edit/${id}`)
     },
     async handleDelete(id) {
       try {
