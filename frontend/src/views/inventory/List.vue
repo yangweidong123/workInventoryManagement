@@ -24,8 +24,7 @@
         </el-form-item>
       </el-form>
 
-      <el-table :data="items" v-loading="loading" stripe @selection-change="handleSelectionChange">
-        <el-table-column type="selection" width="55" />
+      <el-table :data="items" v-loading="loading" stripe>
         <el-table-column prop="styleNo" label="款号" width="120" />
         <el-table-column prop="name" label="品名" min-width="150" />
         <el-table-column label="图片" width="100">
@@ -96,12 +95,23 @@
           <el-form-item label="套餐名称" required>
             <el-input v-model="packageForm.name" placeholder="请输入套餐名称" style="width: 200px" />
           </el-form-item>
-          <el-form-item label="套餐数量">
-            <el-input-number v-model="packageForm.quantity" :min="1" style="width: 120px" />
+        </el-form>
+
+        <el-divider content-position="left">选择商品</el-divider>
+
+        <el-form :inline="true" :model="packageQueryForm" class="package-search">
+          <el-form-item label="款号">
+            <el-input v-model="packageQueryForm.styleNo" placeholder="请输入款号" clearable style="width: 150px" />
+          </el-form-item>
+          <el-form-item label="品名">
+            <el-input v-model="packageQueryForm.name" placeholder="请输入品名" clearable style="width: 150px" />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="searchPackageItems">查询</el-button>
           </el-form-item>
         </el-form>
 
-        <el-table :data="selectedItems" border stripe>
+        <el-table :data="packageItems" border stripe max-height="300" v-loading="packageItemsLoading">
           <el-table-column prop="styleNo" label="款号" width="120" />
           <el-table-column prop="name" label="品名" min-width="150" />
           <el-table-column prop="guidePrice" label="市场指导价(￥)" width="140">
@@ -120,7 +130,29 @@
             </template>
           </el-table-column>
           <el-table-column prop="quantity" label="库存数量" width="100" />
-          <el-table-column label="组合数量" width="120">
+          <el-table-column label="选择" width="80">
+            <template slot-scope="{ row }">
+              <el-checkbox v-model="row.selected" @change="toggleItemSelection(row)" />
+            </template>
+          </el-table-column>
+        </el-table>
+
+        <el-divider content-position="left">已选商品 ({{ selectedItems.length }})</el-divider>
+
+        <el-table :data="selectedItems" border stripe v-if="selectedItems.length > 0">
+          <el-table-column prop="styleNo" label="款号" width="120" />
+          <el-table-column prop="name" label="品名" min-width="150" />
+          <el-table-column prop="guidePrice" label="市场指导价(￥)" width="140">
+            <template slot-scope="{ row }">
+              ¥{{ row.guidePrice }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="priceExclTax" label="不含税/运拿货价(￥)" width="150">
+            <template slot-scope="{ row }">
+              ¥{{ row.priceExclTax }}
+            </template>
+          </el-table-column>
+          <el-table-column label="组合数量" width="140">
             <template slot-scope="{ row }">
               <el-input-number
                 v-model="row.combineQty"
@@ -143,6 +175,7 @@
             </template>
           </el-table-column>
         </el-table>
+        <el-empty v-else description="请从上方列表选择商品" />
 
         <div class="package-summary">
           <el-row :gutter="20">
@@ -156,12 +189,6 @@
               <div class="summary-item">
                 <div class="label">市场指导价总价</div>
                 <div class="value">¥{{ totalGuidePrice.toFixed(2) }}</div>
-              </div>
-            </el-col>
-            <el-col :span="6">
-              <div class="summary-item">
-                <div class="label">套餐数量</div>
-                <div class="value">{{ packageForm.quantity }}</div>
               </div>
             </el-col>
             <el-col :span="6">
@@ -206,9 +233,16 @@ export default {
       selectedItems: [],
       savingPackage: false,
       packageForm: {
-        name: '',
-        quantity: 1
-      }
+        name: ''
+      },
+      packageQueryForm: {
+        current: 1,
+        size: 100,
+        styleNo: '',
+        name: ''
+      },
+      packageItems: [],
+      packageItemsLoading: false
     }
   },
   computed: {
@@ -309,16 +343,46 @@ export default {
       }
     },
     handleSelectionChange(selection) {
-      this.selectedItems = selection.map(item => ({
-        ...item,
-        combineQty: 1,
-        profitRate: item.guidePrice && item.priceExclTax && item.priceExclTax > 0
-          ? ((item.guidePrice - item.priceExclTax) / item.priceExclTax * 100).toFixed(2)
-          : 0
-      }))
+    },
+    async searchPackageItems() {
+      this.packageItemsLoading = true
+      try {
+        const res = await this.fetchPackageItems(this.packageQueryForm)
+        this.packageItems = res.data.records.map(item => ({
+          ...item,
+          selected: this.selectedItems.some(s => s.id === item.id),
+          profitRate: item.guidePrice && item.priceExclTax && item.priceExclTax > 0
+            ? ((item.guidePrice - item.priceExclTax) / item.priceExclTax * 100).toFixed(2)
+            : 0,
+          combineQty: 1
+        }))
+      } finally {
+        this.packageItemsLoading = false
+      }
+    },
+    async fetchPackageItems(params) {
+      const res = await this.$store.dispatch('inventory/fetchList', params)
+      return res
+    },
+    toggleItemSelection(row) {
+      if (row.selected) {
+        if (!this.selectedItems.some(s => s.id === row.id)) {
+          this.selectedItems.push(row)
+        }
+      } else {
+        const index = this.selectedItems.findIndex(s => s.id === row.id)
+        if (index > -1) {
+          this.selectedItems.splice(index, 1)
+        }
+      }
     },
     removeSelectedItem(index) {
+      const item = this.selectedItems[index]
       this.selectedItems.splice(index, 1)
+      const packageItem = this.packageItems.find(p => p.id === item.id)
+      if (packageItem) {
+        packageItem.selected = false
+      }
     },
     getProfitClass(rate) {
       const rateNum = parseFloat(rate) || 0
@@ -327,13 +391,13 @@ export default {
       return 'profit-normal'
     },
     openCreatePackage() {
-      if (this.selectedItems.length === 0) {
-        Message.warning('请先在列表中选择商品')
-        return
-      }
       this.packageForm.name = ''
-      this.packageForm.quantity = 1
+      this.selectedItems = []
+      this.packageQueryForm.styleNo = ''
+      this.packageQueryForm.name = ''
+      this.packageItems = []
       this.showPackageDialog = true
+      this.searchPackageItems()
     },
     async savePackage() {
       if (!this.packageForm.name) {
@@ -384,6 +448,10 @@ export default {
 }
 
 .package-header {
+  margin-bottom: 20px;
+}
+
+.package-search {
   margin-bottom: 20px;
 }
 
