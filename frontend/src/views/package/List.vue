@@ -3,7 +3,10 @@
     <el-card>
       <div slot="header" class="header">
         <span>套餐管理</span>
-        <el-button type="primary" @click="goToForm">新增套餐</el-button>
+        <div>
+          <el-button type="primary" @click="goToForm">新增套餐</el-button>
+          <el-button type="success" @click="handleExport">导出</el-button>
+        </div>
       </div>
 
       <el-form :inline="true" :model="queryForm" class="search-form">
@@ -59,6 +62,7 @@
 
 <script>
 import { mapState, mapActions } from 'vuex'
+import { exportExcel } from '@/api/package'
 import { Message, MessageBox } from 'element-ui'
 
 export default {
@@ -123,6 +127,21 @@ export default {
       if (rate < 0) return 'profit-rate negative'
       if (rate < 10) return 'profit-rate low'
       return 'profit-rate normal'
+    },
+    async handleExport() {
+      try {
+        const res = await exportExcel()
+        const blob = new Blob([res], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = '套餐列表.xlsx'
+        link.click()
+        window.URL.revokeObjectURL(url)
+        Message.success('导出成功')
+      } catch (e) {
+        Message.error('导出失败')
+      }
     }
   }
 }

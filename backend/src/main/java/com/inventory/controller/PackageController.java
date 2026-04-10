@@ -5,10 +5,12 @@ import com.inventory.dto.PackageDTO;
 import com.inventory.dto.PackageQuery;
 import com.inventory.dto.PackageItemDTO;
 import com.inventory.dto.Result;
+import com.inventory.service.ExcelExportService;
 import com.inventory.service.PackageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,9 @@ public class PackageController {
 
     @Autowired
     private PackageService packageService;
+
+    @Autowired
+    private ExcelExportService excelExportService;
 
     @GetMapping
     public Result<IPage<PackageDTO>> list(PackageQuery query) {
@@ -79,5 +84,14 @@ public class PackageController {
             "profitRate", profitRate
         );
         return Result.success(result);
+    }
+
+    @GetMapping("/export")
+    public void export(HttpServletResponse response, @RequestParam(required = false) List<Long> ids) {
+        try {
+            excelExportService.exportPackage(response, ids);
+        } catch (Exception e) {
+            throw new RuntimeException("导出失败: " + e.getMessage());
+        }
     }
 }

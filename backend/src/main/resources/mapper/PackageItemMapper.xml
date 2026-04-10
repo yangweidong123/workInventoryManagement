@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inventory.mapper.PackageItemMapper">
+
+    <resultMap id="BaseResultMap" type="com.inventory.entity.PackageItem">
+        <id column="id" property="id"/>
+        <result column="package_id" property="packageId"/>
+        <result column="inventory_id" property="inventoryId"/>
+        <result column="quantity" property="quantity"/>
+    </resultMap>
+
+    <select id="selectByPackageId" resultMap="BaseResultMap">
+        SELECT id, package_id, inventory_id, quantity
+        FROM package_item
+        WHERE package_id = #{packageId}
+    </select>
+
+    <delete id="deleteByPackageId">
+        DELETE FROM package_item WHERE package_id = #{packageId}
+    </delete>
+
+</mapper>

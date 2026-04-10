@@ -85,3 +85,12 @@ export function setCover(inventoryId, imageId) {
     method: 'put'
   })
 }
+
+export function exportExcel(ids) {
+  return request({
+    url: '/inventory/export',
+    method: 'get',
+    params: { ids },
+    responseType: 'blob'
+  })
+}

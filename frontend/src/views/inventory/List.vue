@@ -6,6 +6,7 @@
         <div>
           <el-button type="primary" @click="goToForm">新增商品</el-button>
           <el-button @click="showImport = true">批量导入</el-button>
+          <el-button type="success" @click="handleExport">导出</el-button>
         </div>
       </div>
 
@@ -91,7 +92,7 @@
 
 <script>
 import { mapState, mapActions } from 'vuex'
-import { importExcel } from '@/api/inventory'
+import { importExcel, exportExcel } from '@/api/inventory'
 import { Message, MessageBox } from 'element-ui'
 
 export default {
@@ -176,6 +177,21 @@ export default {
         Message.error('导入失败')
       } finally {
         this.importing = false
+      }
+    },
+    async handleExport() {
+      try {
+        const res = await exportExcel()
+        const blob = new Blob([res], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = '商品列表.xlsx'
+        link.click()
+        window.URL.revokeObjectURL(url)
+        Message.success('导出成功')
+      } catch (e) {
+        Message.error('导出失败')
       }
     }
   }
