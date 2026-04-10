@@ -94,4 +94,14 @@ public class PackageController {
             throw new RuntimeException("导出失败: " + e.getMessage());
         }
     }
+
+    @PostMapping("/{id}/sell")
+    public Result<Void> sell(@PathVariable Long id, @RequestBody Map<String, Integer> request) {
+        Integer quantity = request.get("quantity");
+        if (quantity == null || quantity <= 0) {
+            return Result.error(400, "销售数量必须大于0");
+        }
+        packageService.sell(id, quantity);
+        return Result.success("销售成功", null);
+    }
 }

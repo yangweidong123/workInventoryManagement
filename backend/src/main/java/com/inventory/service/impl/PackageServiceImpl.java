@@ -175,4 +175,36 @@ public class PackageServiceImpl implements PackageService {
             packageItemMapper.insert(item);
         }
     }
+
+    @Override
+    @Transactional
+    public void sell(Long id, Integer quantity) {
+        Package pkg = packageMapper.selectById(id);
+        if (pkg == null) {
+            throw new RuntimeException("套餐不存在");
+        }
+
+        List<PackageItem> items = packageItemMapper.selectByPackageId(id);
+        if (items == null || items.isEmpty()) {
+            throw new RuntimeException("套餐内没有商品");
+        }
+
+        for (PackageItem pkgItem : items) {
+            Inventory inventory = inventoryMapper.selectById(pkgItem.getInventoryId());
+            if (inventory == null) {
+                throw new RuntimeException("商品不存在");
+            }
+
+            int requiredQty = pkgItem.getQuantity() * quantity;
+            if (inventory.getQuantity() < requiredQty) {
+                throw new RuntimeException("商品【" + inventory.getName() + "】库存不足，需要" + requiredQty + "，实际库存" + inventory.getQuantity());
+            }
+
+            inventory.setQuantity(inventory.getQuantity() - requiredQty);
+            inventoryMapper.updateById(inventory);
+        }
+
+        pkg.setSoldQuantity((pkg.getSoldQuantity() == null ? 0 : pkg.getSoldQuantity()) + quantity);
+        packageMapper.updateById(pkg);
+    }
 }

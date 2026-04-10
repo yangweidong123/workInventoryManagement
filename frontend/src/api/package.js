@@ -62,3 +62,11 @@ export function exportExcel(ids) {
     responseType: 'blob'
   })
 }
+
+export function sell(id, quantity) {
+  return request({
+    url: `/package/${id}/sell`,
+    method: 'post',
+    data: { quantity }
+  })
+}

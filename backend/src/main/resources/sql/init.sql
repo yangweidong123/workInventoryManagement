@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS package (
     total_price DECIMAL(10,2) NOT NULL COMMENT '套餐总价',
     cost_price DECIMAL(10,2) NOT NULL COMMENT '成本总价',
     profit_rate DECIMAL(5,2) NOT NULL COMMENT '毛利率',
+    sold_quantity INT DEFAULT 0 COMMENT '已售数量',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_name (name)

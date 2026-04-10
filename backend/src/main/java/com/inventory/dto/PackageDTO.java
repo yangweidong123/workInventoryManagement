@@ -16,5 +16,7 @@ public class PackageDTO {
 
     private java.math.BigDecimal profitRate;
 
+    private Integer soldQuantity;
+
     private List<PackageItemDTO> items;
 }

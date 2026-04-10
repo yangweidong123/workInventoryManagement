@@ -38,9 +38,10 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column label="操作" width="180" fixed="right">
           <template slot-scope="{ row }">
             <el-button type="primary" link @click="goToForm(row.id)">编辑</el-button>
+            <el-button type="success" link @click="handleSell(row)">销售</el-button>
             <el-button type="danger" link @click="handleDelete(row.id)">删除</el-button>
           </template>
         </el-table-column>
@@ -57,12 +58,33 @@
         style="margin-top: 20px; text-align: right"
       />
     </el-card>
+
+    <el-dialog title="销售套餐" :visible.sync="sellDialogVisible" width="400px">
+      <el-form :model="sellForm" label-width="100px">
+        <el-form-item label="套餐名称">
+          <span>{{ sellForm.name }}</span>
+        </el-form-item>
+        <el-form-item label="套餐单价">
+          <span>¥{{ sellForm.totalPrice }}</span>
+        </el-form-item>
+        <el-form-item label="销售数量" required>
+          <el-input-number v-model="sellForm.quantity" :min="1" :max="9999" />
+        </el-form-item>
+        <el-form-item label="销售总价">
+          <span style="color: #67c23a; font-size: 18px;">¥{{ (sellForm.totalPrice * sellForm.quantity || 0).toFixed(2) }}</span>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="sellDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmSell">确定销售</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { mapState, mapActions } from 'vuex'
-import { exportExcel } from '@/api/package'
+import { exportExcel, sell } from '@/api/package'
 import { Message, MessageBox } from 'element-ui'
 
 export default {
@@ -73,6 +95,13 @@ export default {
         current: 1,
         size: 10,
         name: ''
+      },
+      sellDialogVisible: false,
+      sellForm: {
+        id: null,
+        name: '',
+        totalPrice: 0,
+        quantity: 1
       }
     }
   },
@@ -121,6 +150,23 @@ export default {
         if (e !== 'cancel') {
           Message.error('删除失败')
         }
+      }
+    },
+    handleSell(row) {
+      this.sellForm.id = row.id
+      this.sellForm.name = row.name
+      this.sellForm.totalPrice = row.totalPrice
+      this.sellForm.quantity = 1
+      this.sellDialogVisible = true
+    },
+    async confirmSell() {
+      try {
+        await sell(this.sellForm.id, this.sellForm.quantity)
+        Message.success('销售成功！商品库存已扣减')
+        this.sellDialogVisible = false
+        this.fetchList(this.queryForm)
+      } catch (e) {
+        Message.error(e.message || '销售失败')
       }
     },
     getProfitRateClass(rate) {

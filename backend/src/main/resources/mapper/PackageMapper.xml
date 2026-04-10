@@ -8,6 +8,7 @@
         <result column="total_price" property="totalPrice"/>
         <result column="cost_price" property="costPrice"/>
         <result column="profit_rate" property="profitRate"/>
+        <result column="sold_quantity" property="soldQuantity"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
@@ -18,6 +19,7 @@
         <result column="total_price" property="totalPrice"/>
         <result column="cost_price" property="costPrice"/>
         <result column="profit_rate" property="profitRate"/>
+        <result column="sold_quantity" property="soldQuantity"/>
     </resultMap>
 
     <select id="selectPageList" resultMap="DetailResultMap">
@@ -26,7 +28,8 @@
             name,
             total_price,
             cost_price,
-            profit_rate
+            profit_rate,
+            sold_quantity
         FROM package
         <where>
             <if test="query.name != null and query.name != ''">
@@ -42,7 +45,8 @@
             name,
             total_price,
             cost_price,
-            profit_rate
+            profit_rate,
+            sold_quantity
         FROM package
         WHERE id = #{id}
     </select>

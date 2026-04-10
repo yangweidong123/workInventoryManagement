@@ -23,4 +23,6 @@ public interface PackageService {
     BigDecimal calculateProfit(List<Long> inventoryIds, List<Integer> quantities, BigDecimal totalPrice);
 
     BigDecimal getInventoryPrice(Long inventoryId);
+
+    void sell(Long id, Integer quantity);
 }
