@@ -22,36 +22,39 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, watch } from 'vue'
-
-const props = defineProps({
-  costPrice: {
-    type: Number,
-    default: 0
+<script>
+export default {
+  name: 'ProfitCalculator',
+  props: {
+    costPrice: {
+      type: Number,
+      default: 0
+    }
+  },
+  data() {
+    return {
+      totalPrice: 0
+    }
+  },
+  computed: {
+    profitRate() {
+      if (this.costPrice <= 0) return 0
+      return ((this.totalPrice - this.costPrice) / this.costPrice) * 100
+    },
+    profitRateClass() {
+      if (this.profitRate < 0) return 'profit-rate negative'
+      if (this.profitRate < 10) return 'profit-rate low'
+      return 'profit-rate normal'
+    }
+  },
+  watch: {
+    costPrice(val) {
+      if (val > 0 && this.totalPrice === 0) {
+        this.totalPrice = val
+      }
+    }
   }
-})
-
-const totalPrice = ref(0)
-
-const profitRate = computed(() => {
-  if (props.costPrice <= 0) return 0
-  return ((totalPrice.value - props.costPrice) / props.costPrice) * 100
-})
-
-const profitRateClass = computed(() => {
-  if (profitRate.value < 0) return 'profit-rate negative'
-  if (profitRate.value < 10) return 'profit-rate low'
-  return 'profit-rate normal'
-})
-
-watch(() => props.costPrice, (val) => {
-  if (val > 0 && totalPrice.value === 0) {
-    totalPrice.value = val
-  }
-})
-
-defineExpose({ totalPrice })
+}
 </script>
 
 <style scoped>

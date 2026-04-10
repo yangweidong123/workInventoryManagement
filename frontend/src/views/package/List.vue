@@ -1,12 +1,10 @@
 <template>
   <div class="package-list">
     <el-card>
-      <template #header>
-        <div class="header">
-          <span>套餐管理</span>
-          <el-button type="primary" @click="goToForm">新增套餐</el-button>
-        </div>
-      </template>
+      <div slot="header" class="header">
+        <span>套餐管理</span>
+        <el-button type="primary" @click="goToForm">新增套餐</el-button>
+      </div>
 
       <el-form :inline="true" :model="queryForm" class="search-form">
         <el-form-item label="套餐名称">
@@ -18,27 +16,27 @@
         </el-form-item>
       </el-form>
 
-      <el-table :data="store.items" v-loading="store.loading" stripe>
+      <el-table :data="items" v-loading="loading" stripe>
         <el-table-column prop="name" label="套餐名称" min-width="150" />
         <el-table-column prop="totalPrice" label="套餐总价" width="120">
-          <template #default="{ row }">
+          <template slot-scope="{ row }">
             ¥{{ row.totalPrice }}
           </template>
         </el-table-column>
         <el-table-column prop="costPrice" label="成本总价" width="120">
-          <template #default="{ row }">
+          <template slot-scope="{ row }">
             ¥{{ row.costPrice }}
           </template>
         </el-table-column>
         <el-table-column prop="profitRate" label="毛利率" width="100">
-          <template #default="{ row }">
+          <template slot-scope="{ row }">
             <span :class="getProfitRateClass(row.profitRate)">
               {{ row.profitRate }}%
             </span>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
-          <template #default="{ row }">
+          <template slot-scope="{ row }">
             <el-button type="primary" link @click="goToForm(row.id)">编辑</el-button>
             <el-button type="danger" link @click="handleDelete(row.id)">删除</el-button>
           </template>
@@ -48,81 +46,85 @@
       <el-pagination
         v-model:current-page="queryForm.current"
         v-model:page-size="queryForm.size"
-        :total="store.total"
+        :total="total"
         :page-sizes="[10, 20, 50, 100]"
         layout="total, sizes, prev, pager, next"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
-        style="margin-top: 20px; justify-content: flex-end"
+        style="margin-top: 20px; text-align: right"
       />
     </el-card>
   </div>
 </template>
 
-<script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { usePackageStore } from '@/stores/package'
-import { ElMessage, ElMessageBox } from 'element-plus'
+<script>
+import { mapState, mapActions } from 'vuex'
+import { Message, MessageBox } from 'element-ui'
 
-const router = useRouter()
-const store = usePackageStore()
-
-const queryForm = reactive({
-  current: 1,
-  size: 10,
-  name: ''
-})
-
-onMounted(() => {
-  store.fetchList(queryForm)
-})
-
-const search = () => {
-  queryForm.current = 1
-  store.fetchList(queryForm)
-}
-
-const reset = () => {
-  queryForm.name = ''
-  search()
-}
-
-const handleSizeChange = () => {
-  store.fetchList(queryForm)
-}
-
-const handleCurrentChange = () => {
-  store.fetchList(queryForm)
-}
-
-const goToForm = (id) => {
-  if (id) {
-    router.push(`/package/form/${id}`)
-  } else {
-    router.push('/package/form')
-  }
-}
-
-const handleDelete = async (id) => {
-  try {
-    await ElMessageBox.confirm('确定要删除该套餐吗？', '提示', {
-      type: 'warning'
+export default {
+  name: 'PackageList',
+  data() {
+    return {
+      queryForm: {
+        current: 1,
+        size: 10,
+        name: ''
+      }
+    }
+  },
+  computed: {
+    ...mapState('package', {
+      items: state => state.items,
+      total: state => state.total,
+      loading: state => state.loading
     })
-    await store.remove(id)
-    ElMessage.success('删除成功')
-    store.fetchList(queryForm)
-  } catch (e) {
-    if (e !== 'cancel') {
-      ElMessage.error('删除失败')
+  },
+  mounted() {
+    this.fetchList()
+  },
+  methods: {
+    ...mapActions('package', ['fetchList', 'remove']),
+    search() {
+      this.queryForm.current = 1
+      this.fetchList(this.queryForm)
+    },
+    reset() {
+      this.queryForm.name = ''
+      this.search()
+    },
+    handleSizeChange() {
+      this.fetchList(this.queryForm)
+    },
+    handleCurrentChange() {
+      this.fetchList(this.queryForm)
+    },
+    goToForm(id) {
+      if (id) {
+        this.$router.push(`/package/form/${id}`)
+      } else {
+        this.$router.push('/package/form')
+      }
+    },
+    async handleDelete(id) {
+      try {
+        await MessageBox.confirm('确定要删除该套餐吗？', '提示', {
+          type: 'warning'
+        })
+        await this.remove(id)
+        Message.success('删除成功')
+        this.fetchList(this.queryForm)
+      } catch (e) {
+        if (e !== 'cancel') {
+          Message.error('删除失败')
+        }
+      }
+    },
+    getProfitRateClass(rate) {
+      if (rate < 0) return 'profit-rate negative'
+      if (rate < 10) return 'profit-rate low'
+      return 'profit-rate normal'
     }
   }
-}
-
-const getProfitRateClass = (rate) => {
-  if (rate < 0) return 'profit-rate negative'
-  if (rate < 10) return 'profit-rate low'
-  return 'profit-rate normal'
 }
 </script>
 
