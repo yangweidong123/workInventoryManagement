@@ -31,11 +31,16 @@ request.interceptors.response.use(
   },
   error => {
     if (error.response) {
+      const status = error.response.status
       const data = error.response.data
-      if (error.response.status === 401) {
+      if (status === 401) {
         Message.error('登录已过期，请重新登录')
         localStorage.clear()
         router.push('/login')
+      } else if (status === 400) {
+        Message.error(data && data.message ? data.message : '请求参数错误')
+      } else if (status === 500) {
+        Message.error(data && data.message ? data.message : '服务器错误')
       } else if (data && data.message) {
         Message.error(data.message)
       } else {
