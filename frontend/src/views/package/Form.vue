@@ -19,6 +19,11 @@
             <el-table :data="form.items" stripe size="small" class="items-table">
               <el-table-column prop="inventoryName" label="商品名称" />
               <el-table-column prop="styleNo" label="款号" width="120" />
+              <el-table-column prop="guidePrice" label="指导价" width="100">
+                <template #default="{ row }">
+                  ¥{{ row.guidePrice }}
+                </template>
+              </el-table-column>
               <el-table-column prop="priceExclTax" label="拿货价" width="100">
                 <template #default="{ row }">
                   ¥{{ row.priceExclTax }}
@@ -48,12 +53,28 @@
           </div>
         </el-form-item>
 
-        <el-form-item label="成本总价">
-          <span class="cost-price">¥{{ costPrice.toFixed(2) }}</span>
-        </el-form-item>
-        <el-form-item label="毛利率">
-          <span :class="profitRateClass">{{ profitRate.toFixed(2) }}%</span>
-        </el-form-item>
+        <el-card class="stats-card" v-if="form.items.length > 0">
+          <el-row :gutter="20">
+            <el-col :span="8">
+              <div class="stat-item">
+                <div class="stat-label">市场指导价总数</div>
+                <div class="stat-value">¥{{ guidePriceTotal.toFixed(2) }}</div>
+              </div>
+            </el-col>
+            <el-col :span="8">
+              <div class="stat-item">
+                <div class="stat-label">不含税/运拿货价总数</div>
+                <div class="stat-value">¥{{ costPrice.toFixed(2) }}</div>
+              </div>
+            </el-col>
+            <el-col :span="8">
+              <div class="stat-item">
+                <div class="stat-label">毛利率</div>
+                <div class="stat-value" :class="profitRateClass">{{ profitRate.toFixed(2) }}%</div>
+              </div>
+            </el-col>
+          </el-row>
+        </el-card>
 
         <el-form-item>
           <el-button type="primary" @click="submit" :loading="submitting">保存</el-button>
@@ -79,6 +100,11 @@
         <el-table-column type="selection" width="55" />
         <el-table-column prop="styleNo" label="款号" width="120" />
         <el-table-column prop="name" label="品名" />
+        <el-table-column prop="guidePrice" label="指导价" width="100">
+          <template #default="{ row }">
+            ¥{{ row.guidePrice }}
+          </template>
+        </el-table-column>
         <el-table-column prop="priceExclTax" label="拿货价" width="100">
           <template #default="{ row }">
             ¥{{ row.priceExclTax }}
@@ -130,6 +156,10 @@ const costPrice = computed(() => {
   return form.items.reduce((sum, item) => sum + item.priceExclTax * item.quantity, 0)
 })
 
+const guidePriceTotal = computed(() => {
+  return form.items.reduce((sum, item) => sum + (item.guidePrice || 0) * item.quantity, 0)
+})
+
 const profitRate = computed(() => {
   if (costPrice.value <= 0) return 0
   return ((form.totalPrice - costPrice.value) / costPrice.value) * 100
@@ -161,6 +191,7 @@ const confirmSelect = () => {
         inventoryName: goods.name,
         styleNo: goods.styleNo,
         priceExclTax: goods.priceExclTax,
+        guidePrice: goods.guidePrice,
         quantity: 1
       })
     }
@@ -232,9 +263,37 @@ const goBack = () => {
   overflow-y: auto;
 }
 
-.cost-price {
+.stats-card {
+  margin-bottom: 20px;
+  background-color: #f5f7fa;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 20px;
   font-weight: bold;
-  color: #409eff;
+  color: #303133;
+}
+
+.stat-value.negative {
+  color: #f56c6c;
+}
+
+.stat-value.low {
+  color: #e6a23c;
+}
+
+.stat-value.normal {
+  color: #67c23a;
 }
 
 .profit-rate {

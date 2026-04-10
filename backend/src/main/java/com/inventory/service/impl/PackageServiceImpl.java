@@ -60,6 +60,7 @@ public class PackageServiceImpl implements PackageService {
                 itemDto.setInventoryName(inventory.getName());
                 itemDto.setStyleNo(inventory.getStyleNo());
                 itemDto.setPriceExclTax(inventory.getPriceExclTax());
+                itemDto.setGuidePrice(inventory.getGuidePrice());
                 itemDto.setQuantity(item.getQuantity());
                 itemDto.setSubtotal(inventory.getPriceExclTax().multiply(new BigDecimal(item.getQuantity())));
                 itemDTOs.add(itemDto);

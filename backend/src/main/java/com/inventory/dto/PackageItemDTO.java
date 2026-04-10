@@ -1,6 +1,7 @@
 package com.inventory.dto;
 
 import lombok.Data;
+import java.math.BigDecimal;
 
 @Data
 public class PackageItemDTO {
@@ -13,9 +14,11 @@ public class PackageItemDTO {
 
     private String styleNo;
 
-    private java.math.BigDecimal priceExclTax;
+    private BigDecimal priceExclTax;
+
+    private BigDecimal guidePrice;
 
     private Integer quantity;
 
-    private java.math.BigDecimal subtotal;
+    private BigDecimal subtotal;
 }
