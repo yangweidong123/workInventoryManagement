@@ -38,7 +38,7 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="220" fixed="right">
           <template slot-scope="{ row }">
             <el-button type="primary" link @click="goToEdit(row.id)">编辑</el-button>
             <el-button type="success" link @click="handleSell(row)">销售</el-button>
@@ -221,5 +221,9 @@ export default {
 
 ::v-deep .el-button + .el-button {
   margin-left: 0;
+}
+
+::v-deep .el-table .el-table__cell {
+  text-align: center;
 }
 </style>

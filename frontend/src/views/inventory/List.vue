@@ -51,7 +51,7 @@
             ¥{{ row.goodsValue }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column label="操作" width="160" fixed="right">
           <template slot-scope="{ row }">
             <el-button type="primary" link @click="goToEdit(row.id)">编辑</el-button>
             <el-button type="danger" link @click="handleDelete(row.id)">删除</el-button>
@@ -484,5 +484,9 @@ export default {
 
 .profit-normal {
   color: #67c23a;
+}
+
+::v-deep .el-table .el-table__cell {
+  text-align: center;
 }
 </style>
