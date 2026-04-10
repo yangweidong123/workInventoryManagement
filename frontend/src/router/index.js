@@ -36,6 +36,11 @@ const routes = [
         component: () => import('@/views/inventory/Form.vue')
       },
       {
+        path: '/inventory/create-package',
+        name: 'CreatePackageFromInventory',
+        component: () => import('@/views/inventory/CreatePackage.vue')
+      },
+      {
         path: '/package',
         name: 'Package',
         component: () => import('@/views/package/List.vue')
