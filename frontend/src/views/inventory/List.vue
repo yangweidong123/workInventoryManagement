@@ -101,6 +101,9 @@
           <el-form-item label="套餐名称" required>
             <el-input v-model="packageForm.name" placeholder="请输入套餐名称" style="width: 200px" />
           </el-form-item>
+          <el-form-item label="套餐金额(￥)" required>
+            <el-input-number v-model="packageForm.totalPrice" :precision="2" :step="100" :min="0" style="width: 150px" />
+          </el-form-item>
         </el-form>
 
         <el-divider content-position="left">选择商品</el-divider>
@@ -193,8 +196,8 @@
             </el-col>
             <el-col :span="6">
               <div class="summary-item">
-                <div class="label">市场指导价总价</div>
-                <div class="value">¥{{ totalGuidePrice.toFixed(2) }}</div>
+                <div class="label">套餐金额</div>
+                <div class="value">¥{{ packageForm.totalPrice.toFixed(2) }}</div>
               </div>
             </el-col>
             <el-col :span="6">
@@ -239,7 +242,8 @@ export default {
       selectedItems: [],
       savingPackage: false,
       packageForm: {
-        name: ''
+        name: '',
+        totalPrice: 0
       },
       packageQueryForm: {
         current: 1,
@@ -269,7 +273,7 @@ export default {
     },
     overallProfitRate() {
       if (this.totalCostPrice <= 0) return 0
-      return ((this.totalGuidePrice - this.totalCostPrice) / this.totalCostPrice) * 100
+      return ((this.packageForm.totalPrice - this.totalCostPrice) / this.totalCostPrice) * 100
     }
   },
   mounted() {
@@ -394,6 +398,7 @@ export default {
     },
     openCreatePackage() {
       this.packageForm.name = ''
+      this.packageForm.totalPrice = 0
       this.selectedItems = []
       this.packageQueryForm.styleNo = ''
       this.packageQueryForm.name = ''
@@ -418,7 +423,7 @@ export default {
         }))
         await create({
           name: this.packageForm.name,
-          totalPrice: this.totalGuidePrice,
+          totalPrice: this.packageForm.totalPrice,
           items: items
         })
         Message.success('套餐创建成功')
