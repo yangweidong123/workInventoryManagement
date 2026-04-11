@@ -4,9 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.inventory.dto.*;
+import com.inventory.entity.DailyStats;
 import com.inventory.entity.Inventory;
 import com.inventory.entity.Package;
 import com.inventory.entity.PackageItem;
+import com.inventory.mapper.DailyStatsMapper;
 import com.inventory.mapper.InventoryMapper;
 import com.inventory.mapper.PackageItemMapper;
 import com.inventory.mapper.PackageMapper;
@@ -17,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +38,9 @@ public class PackageServiceImpl implements PackageService {
 
     @Autowired
     private InventoryMapper inventoryMapper;
+
+    @Autowired
+    private DailyStatsMapper dailyStatsMapper;
 
     @Override
     public IPage<PackageDTO> page(PackageQuery query) {
@@ -206,5 +213,26 @@ public class PackageServiceImpl implements PackageService {
 
         pkg.setSoldQuantity((pkg.getSoldQuantity() == null ? 0 : pkg.getSoldQuantity()) + quantity);
         packageMapper.updateById(pkg);
+
+        updateDailyStats(LocalDate.now(), quantity, pkg.getTotalPrice());
+    }
+
+    private void updateDailyStats(LocalDate date, Integer soldCount, BigDecimal soldAmount) {
+        DailyStats stats = dailyStatsMapper.selectByDate(date);
+        if (stats == null) {
+            stats = new DailyStats();
+            stats.setStatDate(date);
+            stats.setInventoryInCount(0);
+            stats.setInventoryInAmount(BigDecimal.ZERO);
+            stats.setInventoryOutCount(0);
+            stats.setInventoryOutAmount(BigDecimal.ZERO);
+            stats.setPackageSoldCount(soldCount);
+            stats.setPackageSoldAmount(soldAmount);
+            dailyStatsMapper.insert(stats);
+        } else {
+            stats.setPackageSoldCount(stats.getPackageSoldCount() + soldCount);
+            stats.setPackageSoldAmount(stats.getPackageSoldAmount().add(soldAmount));
+            dailyStatsMapper.updateById(stats);
+        }
     }
 }

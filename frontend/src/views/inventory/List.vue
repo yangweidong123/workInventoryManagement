@@ -57,9 +57,10 @@
             ¥{{ row.goodsValue }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="160" fixed="right">
+        <el-table-column label="操作" width="200" fixed="right">
           <template slot-scope="{ row }">
             <el-button type="primary" link @click="goToEdit(row.id)">编辑</el-button>
+            <el-button type="warning" link @click="openOutDialog(row)">出库</el-button>
             <el-button type="danger" link @click="handleDelete(row.id)">删除</el-button>
           </template>
         </el-table-column>
@@ -92,6 +93,31 @@
       <div slot="footer">
         <el-button @click="showImport = false">取消</el-button>
         <el-button type="primary" @click="handleImport" :loading="importing">导入</el-button>
+      </div>
+    </el-dialog>
+
+    <el-dialog title="商品出库" :visible.sync="showOutDialog" width="500px">
+      <el-form :model="outForm" label-width="100px">
+        <el-form-item label="商品信息">
+          <div>
+            <div>款号：{{ outForm.styleNo }}</div>
+            <div>品名：{{ outForm.name }}</div>
+            <div>当前库存：{{ outForm.stock }}</div>
+          </div>
+        </el-form-item>
+        <el-form-item label="出库数量" required>
+          <el-input-number v-model="outForm.quantity" :min="1" :max="outForm.stock" />
+        </el-form-item>
+        <el-form-item label="出库总金额">
+          <span style="color: #67c23a; font-size: 18px;">¥{{ ((outForm.quantity || 0) * outForm.price).toFixed(2) }}</span>
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="outForm.remark" type="textarea" :rows="2" placeholder="请输入备注" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="showOutDialog = false">取消</el-button>
+        <el-button type="primary" @click="confirmOut" :loading="outLoading">确定出库</el-button>
       </div>
     </el-dialog>
 
@@ -223,6 +249,7 @@
 import { mapState, mapActions } from 'vuex'
 import { importExcel, exportExcel, list } from '@/api/inventory'
 import { create } from '@/api/package'
+import { createOut } from '@/api/inventoryOut'
 import { Message, MessageBox } from 'element-ui'
 
 export default {
@@ -238,6 +265,17 @@ export default {
       showImport: false,
       importing: false,
       importFile: null,
+      showOutDialog: false,
+      outLoading: false,
+      outForm: {
+        inventoryId: null,
+        styleNo: '',
+        name: '',
+        stock: 0,
+        price: 0,
+        quantity: 1,
+        remark: ''
+      },
       showPackageDialog: false,
       selectedItems: [],
       savingPackage: false,
@@ -395,6 +433,42 @@ export default {
       if (rateNum < 0) return 'profit-negative'
       if (rateNum < 10) return 'profit-low'
       return 'profit-normal'
+    },
+    openOutDialog(row) {
+      this.outForm.inventoryId = row.id
+      this.outForm.styleNo = row.styleNo
+      this.outForm.name = row.name
+      this.outForm.stock = row.quantity
+      this.outForm.price = row.priceExclTax
+      this.outForm.quantity = 1
+      this.outForm.remark = ''
+      this.showOutDialog = true
+    },
+    async confirmOut() {
+      if (!this.outForm.quantity || this.outForm.quantity < 1) {
+        Message.warning('请输入出库数量')
+        return
+      }
+      if (this.outForm.quantity > this.outForm.stock) {
+        Message.warning('出库数量不能超过库存')
+        return
+      }
+      this.outLoading = true
+      try {
+        await createOut({
+          inventoryId: this.outForm.inventoryId,
+          quantity: this.outForm.quantity,
+          operator: this.$store.state.user.username,
+          remark: this.outForm.remark
+        })
+        Message.success('出库成功')
+        this.showOutDialog = false
+        this.fetchList(this.queryForm)
+      } catch (e) {
+        Message.error(e.message || '出库失败')
+      } finally {
+        this.outLoading = false
+      }
     },
     openCreatePackage() {
       this.packageForm.name = ''

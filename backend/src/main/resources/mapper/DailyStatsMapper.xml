@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inventory.mapper.DailyStatsMapper">
+
+    <resultMap id="BaseResultMap" type="com.inventory.entity.DailyStats">
+        <id column="id" property="id"/>
+        <result column="stat_date" property="statDate"/>
+        <result column="inventory_in_count" property="inventoryInCount"/>
+        <result column="inventory_in_amount" property="inventoryInAmount"/>
+        <result column="inventory_out_count" property="inventoryOutCount"/>
+        <result column="inventory_out_amount" property="inventoryOutAmount"/>
+        <result column="package_sold_count" property="packageSoldCount"/>
+        <result column="package_sold_amount" property="packageSoldAmount"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectByDateRange" resultMap="BaseResultMap">
+        SELECT id, stat_date, inventory_in_count, inventory_in_amount, 
+               inventory_out_count, inventory_out_amount, 
+               package_sold_count, package_sold_amount
+        FROM daily_stats
+        <where>
+            <if test="startDate != null">
+                AND stat_date &gt;= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND stat_date &lt;= #{endDate}
+            </if>
+        </where>
+        ORDER BY stat_date DESC
+    </select>
+
+    <select id="selectByDate" resultMap="BaseResultMap">
+        SELECT id, stat_date, inventory_in_count, inventory_in_amount, 
+               inventory_out_count, inventory_out_amount, 
+               package_sold_count, package_sold_amount
+        FROM daily_stats
+        WHERE stat_date = #{statDate}
+    </select>
+
+</mapper>

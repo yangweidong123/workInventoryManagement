@@ -19,6 +19,10 @@
           <i class="el-icon-present"></i>
           <span slot="title">套餐管理</span>
         </el-menu-item>
+        <el-menu-item index="/stats">
+          <i class="el-icon-data-analysis"></i>
+          <span slot="title">统计报表</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>

@@ -49,6 +49,11 @@ const routes = [
         path: '/package/edit/:id',
         name: 'PackageEdit',
         component: () => import('@/views/package/Form.vue')
+      },
+      {
+        path: '/stats',
+        name: 'Stats',
+        component: () => import('@/views/stats/List.vue')
       }
     ]
   }

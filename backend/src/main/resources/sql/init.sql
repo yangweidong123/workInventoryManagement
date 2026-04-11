@@ -65,3 +65,32 @@ CREATE TABLE IF NOT EXISTS package_item (
     FOREIGN KEY (inventory_id) REFERENCES inventory(id) ON DELETE CASCADE,
     UNIQUE KEY uk_package_inventory (package_id, inventory_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='套餐明细表';
+
+CREATE TABLE IF NOT EXISTS inventory_out (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    inventory_id BIGINT NOT NULL COMMENT '商品ID',
+    style_no VARCHAR(50) COMMENT '款号（冗余字段）',
+    name VARCHAR(100) COMMENT '品名（冗余字段）',
+    quantity INT NOT NULL COMMENT '出库数量',
+    price DECIMAL(10,2) COMMENT '出库单价',
+    total_amount DECIMAL(10,2) COMMENT '出库总金额',
+    out_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '出库时间',
+    operator VARCHAR(50) COMMENT '操作人',
+    remark VARCHAR(255) COMMENT '备注',
+    INDEX idx_inventory_id (inventory_id),
+    INDEX idx_out_time (out_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品出库记录表';
+
+CREATE TABLE IF NOT EXISTS daily_stats (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    stat_date DATE NOT NULL COMMENT '统计日期',
+    inventory_in_count INT DEFAULT 0 COMMENT '商品入库数量',
+    inventory_in_amount DECIMAL(15,2) DEFAULT 0 COMMENT '商品入库金额',
+    inventory_out_count INT DEFAULT 0 COMMENT '商品出库数量',
+    inventory_out_amount DECIMAL(15,2) DEFAULT 0 COMMENT '商品出库金额',
+    package_sold_count INT DEFAULT 0 COMMENT '套餐销售数量',
+    package_sold_amount DECIMAL(15,2) DEFAULT 0 COMMENT '套餐销售金额',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_stat_date (stat_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='每日统计表';
