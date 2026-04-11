@@ -1,9 +1,9 @@
 package com.inventory.service.impl;
 
-import com.inventory.dto.DailyStatsDTO;
 import com.inventory.dto.InventoryOutDTO;
 import com.inventory.entity.DailyStats;
 import com.inventory.entity.Inventory;
+import com.inventory.entity.InventoryOut;
 import com.inventory.mapper.DailyStatsMapper;
 import com.inventory.mapper.InventoryMapper;
 import com.inventory.mapper.InventoryOutMapper;
@@ -45,7 +45,7 @@ public class InventoryOutServiceImpl implements InventoryOutService {
 
         BigDecimal totalAmount = inventory.getPriceExclTax().multiply(new BigDecimal(dto.getQuantity()));
 
-        InventoryOutDTO outRecord = new InventoryOutDTO();
+        InventoryOut outRecord = new InventoryOut();
         outRecord.setInventoryId(dto.getInventoryId());
         outRecord.setStyleNo(inventory.getStyleNo());
         outRecord.setName(inventory.getName());
