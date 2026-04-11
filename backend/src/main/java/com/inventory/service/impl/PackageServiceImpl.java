@@ -13,6 +13,7 @@ import com.inventory.mapper.InventoryMapper;
 import com.inventory.mapper.PackageItemMapper;
 import com.inventory.mapper.PackageMapper;
 import com.inventory.service.PackageService;
+import com.inventory.service.PackageSoldRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,9 @@ public class PackageServiceImpl implements PackageService {
 
     @Autowired
     private DailyStatsMapper dailyStatsMapper;
+
+    @Autowired
+    private PackageSoldRecordService packageSoldRecordService;
 
     @Override
     public IPage<PackageDTO> page(PackageQuery query) {
@@ -214,7 +218,9 @@ public class PackageServiceImpl implements PackageService {
         pkg.setSoldQuantity((pkg.getSoldQuantity() == null ? 0 : pkg.getSoldQuantity()) + quantity);
         packageMapper.updateById(pkg);
 
-        updateDailyStats(LocalDate.now(), quantity, pkg.getTotalPrice());
+        packageSoldRecordService.recordSale(pkg.getId(), pkg.getName(), quantity, pkg.getTotalPrice(), pkg.getTotalPrice().multiply(new BigDecimal(quantity)), null);
+
+        updateDailyStats(LocalDate.now(), quantity, pkg.getTotalPrice().multiply(new BigDecimal(quantity)));
     }
 
     private void updateDailyStats(LocalDate date, Integer soldCount, BigDecimal soldAmount) {

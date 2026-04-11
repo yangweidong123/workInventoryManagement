@@ -147,7 +147,7 @@
 <script>
 import { getStats } from '@/api/stats'
 import { listOut } from '@/api/inventoryOut'
-import { list } from '@/api/package'
+import { listPackageSoldRecord } from '@/api/stats'
 import { Message } from 'element-ui'
 
 export default {
@@ -223,8 +223,8 @@ export default {
     async fetchPackageItems() {
       this.packageLoading = true
       try {
-        const res = await list({ current: 1, size: 1000 })
-        this.packageItems = res.data.records || []
+        const res = await listPackageSoldRecord(this.queryForm)
+        this.packageItems = res.data || []
       } catch (e) {
         Message.error('获取套餐销售明细失败')
       } finally {
@@ -257,16 +257,16 @@ export default {
       this.downloadCsv(`商品出库明细_${this.queryForm.startDate}_${this.queryForm.endDate}.csv`, headers, data)
     },
     exportPackageItem(row) {
-      const headers = ['套餐名称', '套餐价格', '销售数量', '成本价', '毛利率']
+      const headers = ['套餐名称', '销售数量', '单价', '总金额', '销售时间', '操作人']
       const data = [[
-        row.name, row.totalPrice, row.soldQuantity, row.costPrice, row.profitRate + '%'
+        row.packageName, row.quantity, row.unitPrice, row.totalAmount, row.soldTime, row.operator
       ]]
-      this.downloadCsv(`套餐销售_${row.name}.csv`, headers, data)
+      this.downloadCsv(`套餐销售_${row.packageName}_${row.soldTime}.csv`, headers, data)
     },
     exportAllPackage() {
-      const headers = ['套餐名称', '套餐价格', '销售数量', '成本价', '毛利率']
+      const headers = ['套餐名称', '销售数量', '单价', '总金额', '销售时间', '操作人']
       const data = this.packageItems.map(item => [
-        item.name, item.totalPrice, item.soldQuantity || 0, item.costPrice, item.profitRate + '%'
+        item.packageName, item.quantity, item.unitPrice, item.totalAmount, item.soldTime, item.operator
       ])
       this.downloadCsv(`套餐销售明细_${this.queryForm.startDate}_${this.queryForm.endDate}.csv`, headers, data)
     },

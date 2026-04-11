@@ -94,3 +94,16 @@ CREATE TABLE IF NOT EXISTS daily_stats (
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uk_stat_date (stat_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='每日统计表';
+
+CREATE TABLE IF NOT EXISTS package_sold_record (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    package_id BIGINT NOT NULL COMMENT '套餐ID',
+    package_name VARCHAR(100) COMMENT '套餐名称（冗余字段）',
+    quantity INT NOT NULL COMMENT '销售数量',
+    unit_price DECIMAL(10,2) COMMENT '套餐单价',
+    total_amount DECIMAL(15,2) COMMENT '销售总金额',
+    sold_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '销售时间',
+    operator VARCHAR(50) COMMENT '操作人',
+    INDEX idx_package_id (package_id),
+    INDEX idx_sold_time (sold_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='套餐销售记录表';

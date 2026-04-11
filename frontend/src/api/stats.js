@@ -7,3 +7,11 @@ export function getStats(params) {
     params
   })
 }
+
+export function listPackageSoldRecord(params) {
+  return request({
+    url: '/package-sold-record',
+    method: 'get',
+    params
+  })
+}

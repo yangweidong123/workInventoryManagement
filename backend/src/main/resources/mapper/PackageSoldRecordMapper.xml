@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inventory.mapper.PackageSoldRecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.inventory.entity.PackageSoldRecord">
+        <id column="id" property="id"/>
+        <result column="package_id" property="packageId"/>
+        <result column="package_name" property="packageName"/>
+        <result column="quantity" property="quantity"/>
+        <result column="unit_price" property="unitPrice"/>
+        <result column="total_amount" property="totalAmount"/>
+        <result column="sold_time" property="soldTime"/>
+        <result column="operator" property="operator"/>
+    </resultMap>
+
+    <select id="selectByDateRange" resultMap="BaseResultMap">
+        SELECT id, package_id, package_name, quantity, unit_price, total_amount, sold_time, operator
+        FROM package_sold_record
+        <where>
+            <if test="startTime != null">
+                AND sold_time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND sold_time &lt; #{endTime}
+            </if>
+        </where>
+        ORDER BY sold_time DESC
+    </select>
+
+</mapper>
