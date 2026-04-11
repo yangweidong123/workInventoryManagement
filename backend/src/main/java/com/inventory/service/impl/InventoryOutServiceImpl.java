@@ -84,6 +84,26 @@ public class InventoryOutServiceImpl implements InventoryOutService {
         }).collect(Collectors.toList());
     }
 
+    @Override
+    public List<InventoryOutDTO> listByDate(LocalDate date) {
+        LocalDateTime start = date.atStartOfDay();
+        LocalDateTime end = date.plusDays(1).atStartOfDay();
+        return inventoryOutMapper.selectByDateRange(start, end).stream().map(out -> {
+            InventoryOutDTO dto = new InventoryOutDTO();
+            dto.setId(out.getId());
+            dto.setInventoryId(out.getInventoryId());
+            dto.setStyleNo(out.getStyleNo());
+            dto.setName(out.getName());
+            dto.setQuantity(out.getQuantity());
+            dto.setPrice(out.getPrice());
+            dto.setTotalAmount(out.getTotalAmount());
+            dto.setOutTime(out.getOutTime());
+            dto.setOperator(out.getOperator());
+            dto.setRemark(out.getRemark());
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
     private void updateDailyStats(LocalDate date, Integer outCount, BigDecimal outAmount) {
         DailyStats stats = dailyStatsMapper.selectByDate(date);
         if (stats == null) {

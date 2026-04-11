@@ -1,8 +1,11 @@
 <template>
   <div class="stats-list">
     <el-card>
-      <div slot="header">
+      <div slot="header" class="header">
         <span>统计报表</span>
+        <div>
+          <el-button type="success" @click="handleExport">导出统计</el-button>
+        </div>
       </div>
 
       <el-form :inline="true" :model="queryForm" class="search-form">
@@ -57,7 +60,40 @@
         </el-col>
       </el-row>
 
-      <el-table :data="items" v-loading="loading" stripe class="stats-table">
+      <el-table 
+        :data="items" 
+        v-loading="loading" 
+        stripe 
+        row-key="statDate"
+        :expand-row-keys="expandedRows"
+        @expand-change="handleExpandChange">
+        <el-table-column type="expand">
+          <template slot-scope="{ row }">
+            <div class="expand-box">
+              <el-table 
+                :data="expandedItems" 
+                border 
+                size="small"
+                v-loading="expandLoading">
+                <el-table-column prop="styleNo" label="款号" width="150" />
+                <el-table-column prop="name" label="品名" min-width="150" />
+                <el-table-column prop="quantity" label="出库数量" width="100" />
+                <el-table-column prop="price" label="单价" width="100">
+                  <template slot-scope="{ row }">
+                    ¥{{ row.price }}
+                  </template>
+                </el-table-column>
+                <el-table-column prop="totalAmount" label="出库金额" width="120">
+                  <template slot-scope>
+                    ¥{{ row.totalAmount }}
+                  </template>
+                </el-table-column>
+                <el-table-column prop="operator" label="操作人" width="100" />
+                <el-table-column prop="remark" label="备注" min-width="150" />
+              </el-table>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="statDate" label="日期" width="120" />
         <el-table-column label="商品出库" align="center">
           <el-table-column prop="inventoryOutCount" label="数量" width="100" />
@@ -82,6 +118,7 @@
 
 <script>
 import { getStats } from '@/api/stats'
+import { listOutByDate } from '@/api/inventoryOut'
 import { Message } from 'element-ui'
 
 export default {
@@ -93,6 +130,9 @@ export default {
         endDate: ''
       },
       items: [],
+      expandedRows: [],
+      expandedItems: [],
+      expandLoading: false,
       loading: false
     }
   },
@@ -130,6 +170,24 @@ export default {
         this.loading = false
       }
     },
+    async handleExpandChange(row, expanded) {
+      if (expanded) {
+        this.expandedRows = [row.statDate]
+        this.expandLoading = true
+        try {
+          const res = await listOutByDate({ date: row.statDate })
+          this.expandedItems = res.data || []
+        } catch (e) {
+          Message.error('获取明细失败')
+          this.expandedItems = []
+        } finally {
+          this.expandLoading = false
+        }
+      } else {
+        this.expandedRows = []
+        this.expandedItems = []
+      }
+    },
     search() {
       this.fetchData()
     },
@@ -140,14 +198,40 @@ export default {
       this.queryForm.startDate = start.toISOString().split('T')[0]
       this.queryForm.endDate = end.toISOString().split('T')[0]
       this.fetchData()
+    },
+    handleExport() {
+      const headers = ['日期', '商品出库数量', '商品出库金额', '套餐销售数量', '套餐销售金额']
+      const data = this.items.map(item => [
+        item.statDate,
+        item.inventoryOutCount || 0,
+        item.inventoryOutAmount || 0,
+        item.packageSoldCount || 0,
+        item.packageSoldAmount || 0
+      ])
+      
+      let csvContent = headers.join(',') + '\n'
+      data.forEach(row => {
+        csvContent += row.join(',') + '\n'
+      })
+      
+      const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `统计报表_${this.queryForm.startDate}_${this.queryForm.endDate}.csv`
+      link.click()
+      window.URL.revokeObjectURL(url)
+      Message.success('导出成功')
     }
   }
 }
 </script>
 
 <style scoped>
-.stats-list {
-  padding: 0;
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .search-form {
@@ -174,7 +258,8 @@ export default {
   color: #303133;
 }
 
-.stats-table {
-  margin-top: 20px;
+.expand-box {
+  padding: 10px 20px;
+  background-color: #f5f7fa;
 }
 </style>

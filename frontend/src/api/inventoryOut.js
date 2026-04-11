@@ -15,3 +15,11 @@ export function listOut(params) {
     params
   })
 }
+
+export function listOutByDate(params) {
+  return request({
+    url: '/inventory-out/by-date',
+    method: 'get',
+    params
+  })
+}
