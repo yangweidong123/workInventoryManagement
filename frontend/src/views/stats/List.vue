@@ -89,23 +89,20 @@
         v-loading="packageLoading" 
         stripe 
         class="expand-table">
-        <el-table-column prop="name" label="套餐名称" min-width="150" />
-        <el-table-column prop="totalPrice" label="套餐价格" width="120">
+        <el-table-column prop="packageName" label="套餐名称" min-width="150" />
+        <el-table-column prop="unitPrice" label="套餐价格" width="120">
           <template slot-scope="{ row }">
-            ¥{{ row.totalPrice }}
+            ¥{{ row.unitPrice }}
           </template>
         </el-table-column>
-        <el-table-column prop="soldQuantity" label="销售数量" width="100" />
-        <el-table-column prop="costPrice" label="成本价" width="120">
+        <el-table-column prop="quantity" label="销售数量" width="100" />
+        <el-table-column prop="totalAmount" label="总金额" width="120">
           <template slot-scope="{ row }">
-            ¥{{ row.costPrice }}
+            ¥{{ row.totalAmount }}
           </template>
         </el-table-column>
-        <el-table-column prop="profitRate" label="毛利率" width="100">
-          <template slot-scope="{ row }">
-            {{ row.profitRate }}%
-          </template>
-        </el-table-column>
+        <el-table-column prop="soldTime" label="销售时间" width="160" />
+        <el-table-column prop="operator" label="操作人" width="100" />
         <el-table-column label="操作" width="100" fixed="right">
           <template slot-scope="{ row }">
             <el-button type="text" size="small" @click="exportPackageItem(row)">导出</el-button>
@@ -257,16 +254,16 @@ export default {
       this.downloadCsv(`商品出库明细_${this.queryForm.startDate}_${this.queryForm.endDate}.csv`, headers, data)
     },
     exportPackageItem(row) {
-      const headers = ['套餐名称', '销售数量', '单价', '总金额', '销售时间', '操作人']
+      const headers = ['套餐名称', '单价', '销售数量', '总金额', '销售时间', '操作人']
       const data = [[
-        row.packageName, row.quantity, row.unitPrice, row.totalAmount, row.soldTime, row.operator
+        row.packageName, row.unitPrice, row.quantity, row.totalAmount, row.soldTime, row.operator
       ]]
       this.downloadCsv(`套餐销售_${row.packageName}_${row.soldTime}.csv`, headers, data)
     },
     exportAllPackage() {
-      const headers = ['套餐名称', '销售数量', '单价', '总金额', '销售时间', '操作人']
+      const headers = ['套餐名称', '单价', '销售数量', '总金额', '销售时间', '操作人']
       const data = this.packageItems.map(item => [
-        item.packageName, item.quantity, item.unitPrice, item.totalAmount, item.soldTime, item.operator
+        item.packageName, item.unitPrice, item.quantity, item.totalAmount, item.soldTime, item.operator
       ])
       this.downloadCsv(`套餐销售明细_${this.queryForm.startDate}_${this.queryForm.endDate}.csv`, headers, data)
     },
