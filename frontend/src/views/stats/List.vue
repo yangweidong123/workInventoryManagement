@@ -1,11 +1,8 @@
 <template>
   <div class="stats-list">
     <el-card>
-      <div slot="header" class="header">
+      <div slot="header">
         <span>统计报表</span>
-        <div>
-          <el-button type="success" @click="handleExport">导出统计</el-button>
-        </div>
       </div>
 
       <el-form :inline="true" :model="queryForm" class="search-form">
@@ -34,67 +31,98 @@
       </el-form>
 
       <el-row :gutter="20" class="summary-row">
-        <el-col :span="6">
-          <el-card class="summary-card">
-            <div class="summary-title">商品出库总数量</div>
+        <el-col :span="12">
+          <el-card class="summary-card clickable" @click.native="toggleExpand('out')">
+            <div class="summary-title">
+              商品出库总数量
+              <i :class="expandedOut ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i>
+            </div>
             <div class="summary-value">{{ totalOutCount }}</div>
           </el-card>
         </el-col>
-        <el-col :span="6">
-          <el-card class="summary-card">
-            <div class="summary-title">商品出库总金额</div>
-            <div class="summary-value">¥{{ totalOutAmount }}</div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="summary-card">
-            <div class="summary-title">套餐销售总数量</div>
+        <el-col :span="12">
+          <el-card class="summary-card clickable" @click.native="toggleExpand('package')">
+            <div class="summary-title">
+              套餐销售总数量
+              <i :class="expandedPackage ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i>
+            </div>
             <div class="summary-value">{{ totalPackageCount }}</div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="summary-card">
-            <div class="summary-title">套餐销售总金额</div>
-            <div class="summary-value">¥{{ totalPackageAmount }}</div>
           </el-card>
         </el-col>
       </el-row>
 
       <el-table 
+        v-show="expandedOut"
+        :data="outItems" 
+        v-loading="outLoading" 
+        stripe 
+        class="expand-table">
+        <el-table-column prop="styleNo" label="款号" width="150" />
+        <el-table-column prop="name" label="品名" min-width="150" />
+        <el-table-column prop="quantity" label="出库数量" width="100" />
+        <el-table-column prop="price" label="单价" width="100">
+          <template slot-scope="{ row }">
+            ¥{{ row.price }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="totalAmount" label="金额" width="120">
+          <template slot-scope="{ row }">
+            ¥{{ row.totalAmount }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="operator" label="操作人" width="100" />
+        <el-table-column prop="remark" label="备注" min-width="150" />
+        <el-table-column label="操作" width="100" fixed="right">
+          <template slot-scope="{ row }">
+            <el-button type="text" size="small" @click="exportOutItem(row)">导出</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <div v-show="expandedOut" class="export-bar">
+        <el-button type="success" size="small" @click="exportAllOut">导出全部商品出库</el-button>
+      </div>
+
+      <el-table 
+        v-show="expandedPackage"
+        :data="packageItems" 
+        v-loading="packageLoading" 
+        stripe 
+        class="expand-table">
+        <el-table-column prop="name" label="套餐名称" min-width="150" />
+        <el-table-column prop="totalPrice" label="套餐价格" width="120">
+          <template slot-scope="{ row }">
+            ¥{{ row.totalPrice }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="soldQuantity" label="销售数量" width="100" />
+        <el-table-column prop="costPrice" label="成本价" width="120">
+          <template slot-scope="{ row }">
+            ¥{{ row.costPrice }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="profitRate" label="毛利率" width="100">
+          <template slot-scope="{ row }">
+            {{ row.profitRate }}%
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="100" fixed="right">
+          <template slot-scope="{ row }">
+            <el-button type="text" size="small" @click="exportPackageItem(row)">导出</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <div v-show="expandedPackage" class="export-bar">
+        <el-button type="success" size="small" @click="exportAllPackage">导出全部套餐销售</el-button>
+      </div>
+
+      <el-table 
         :data="items" 
         v-loading="loading" 
         stripe 
-        row-key="statDate"
-        :expand-row-keys="expandedRows"
-        @expand-change="handleExpandChange">
-        <el-table-column type="expand">
-          <template slot-scope="{ row }">
-            <div class="expand-box">
-              <el-table 
-                :data="expandedItems" 
-                border 
-                size="small"
-                v-loading="expandLoading">
-                <el-table-column prop="styleNo" label="款号" width="150" />
-                <el-table-column prop="name" label="品名" min-width="150" />
-                <el-table-column prop="quantity" label="出库数量" width="100" />
-                <el-table-column prop="price" label="单价" width="100">
-                  <template slot-scope="{ row }">
-                    ¥{{ row.price }}
-                  </template>
-                </el-table-column>
-                <el-table-column prop="totalAmount" label="出库金额" width="120">
-                  <template slot-scope>
-                    ¥{{ row.totalAmount }}
-                  </template>
-                </el-table-column>
-                <el-table-column prop="operator" label="操作人" width="100" />
-                <el-table-column prop="remark" label="备注" min-width="150" />
-              </el-table>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="statDate" label="日期" width="120" />
+        class="stats-table">
+        <el-table-column prop="statDate" label="统计日期" width="120" />
         <el-table-column label="商品出库" align="center">
           <el-table-column prop="inventoryOutCount" label="数量" width="100" />
           <el-table-column prop="inventoryOutAmount" label="金额" width="120">
@@ -118,7 +146,8 @@
 
 <script>
 import { getStats } from '@/api/stats'
-import { listOutByDate } from '@/api/inventoryOut'
+import { listOut } from '@/api/inventoryOut'
+import { list } from '@/api/package'
 import { Message } from 'element-ui'
 
 export default {
@@ -130,24 +159,21 @@ export default {
         endDate: ''
       },
       items: [],
-      expandedRows: [],
-      expandedItems: [],
-      expandLoading: false,
-      loading: false
+      loading: false,
+      expandedOut: false,
+      expandedPackage: false,
+      outItems: [],
+      outLoading: false,
+      packageItems: [],
+      packageLoading: false
     }
   },
   computed: {
     totalOutCount() {
       return this.items.reduce((sum, item) => sum + (item.inventoryOutCount || 0), 0)
     },
-    totalOutAmount() {
-      return this.items.reduce((sum, item) => sum + (item.inventoryOutAmount || 0), 0).toFixed(2)
-    },
     totalPackageCount() {
       return this.items.reduce((sum, item) => sum + (item.packageSoldCount || 0), 0)
-    },
-    totalPackageAmount() {
-      return this.items.reduce((sum, item) => sum + (item.packageSoldAmount || 0), 0).toFixed(2)
     }
   },
   mounted() {
@@ -170,22 +196,39 @@ export default {
         this.loading = false
       }
     },
-    async handleExpandChange(row, expanded) {
-      if (expanded) {
-        this.expandedRows = [row.statDate]
-        this.expandLoading = true
-        try {
-          const res = await listOutByDate({ date: row.statDate })
-          this.expandedItems = res.data || []
-        } catch (e) {
-          Message.error('获取明细失败')
-          this.expandedItems = []
-        } finally {
-          this.expandLoading = false
+    async toggleExpand(type) {
+      if (type === 'out') {
+        this.expandedOut = !this.expandedOut
+        if (this.expandedOut && this.outItems.length === 0) {
+          this.fetchOutItems()
         }
       } else {
-        this.expandedRows = []
-        this.expandedItems = []
+        this.expandedPackage = !this.expandedPackage
+        if (this.expandedPackage && this.packageItems.length === 0) {
+          this.fetchPackageItems()
+        }
+      }
+    },
+    async fetchOutItems() {
+      this.outLoading = true
+      try {
+        const res = await listOut(this.queryForm)
+        this.outItems = res.data || []
+      } catch (e) {
+        Message.error('获取商品出库明细失败')
+      } finally {
+        this.outLoading = false
+      }
+    },
+    async fetchPackageItems() {
+      this.packageLoading = true
+      try {
+        const res = await list({ current: 1, size: 1000 })
+        this.packageItems = res.data.records || []
+      } catch (e) {
+        Message.error('获取套餐销售明细失败')
+      } finally {
+        this.packageLoading = false
       }
     },
     search() {
@@ -199,26 +242,44 @@ export default {
       this.queryForm.endDate = end.toISOString().split('T')[0]
       this.fetchData()
     },
-    handleExport() {
-      const headers = ['日期', '商品出库数量', '商品出库金额', '套餐销售数量', '套餐销售金额']
-      const data = this.items.map(item => [
-        item.statDate,
-        item.inventoryOutCount || 0,
-        item.inventoryOutAmount || 0,
-        item.packageSoldCount || 0,
-        item.packageSoldAmount || 0
+    exportOutItem(row) {
+      const headers = ['款号', '品名', '出库数量', '单价', '金额', '操作人', '备注']
+      const data = [[
+        row.styleNo, row.name, row.quantity, row.price, row.totalAmount, row.operator, row.remark
+      ]]
+      this.downloadCsv(`商品出库_${row.styleNo}_${row.remark || ''}.csv`, headers, data)
+    },
+    exportAllOut() {
+      const headers = ['款号', '品名', '出库数量', '单价', '金额', '操作人', '备注']
+      const data = this.outItems.map(item => [
+        item.styleNo, item.name, item.quantity, item.price, item.totalAmount, item.operator, item.remark
       ])
-      
+      this.downloadCsv(`商品出库明细_${this.queryForm.startDate}_${this.queryForm.endDate}.csv`, headers, data)
+    },
+    exportPackageItem(row) {
+      const headers = ['套餐名称', '套餐价格', '销售数量', '成本价', '毛利率']
+      const data = [[
+        row.name, row.totalPrice, row.soldQuantity, row.costPrice, row.profitRate + '%'
+      ]]
+      this.downloadCsv(`套餐销售_${row.name}.csv`, headers, data)
+    },
+    exportAllPackage() {
+      const headers = ['套餐名称', '套餐价格', '销售数量', '成本价', '毛利率']
+      const data = this.packageItems.map(item => [
+        item.name, item.totalPrice, item.soldQuantity || 0, item.costPrice, item.profitRate + '%'
+      ])
+      this.downloadCsv(`套餐销售明细_${this.queryForm.startDate}_${this.queryForm.endDate}.csv`, headers, data)
+    },
+    downloadCsv(filename, headers, data) {
       let csvContent = headers.join(',') + '\n'
       data.forEach(row => {
         csvContent += row.join(',') + '\n'
       })
-      
       const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `统计报表_${this.queryForm.startDate}_${this.queryForm.endDate}.csv`
+      link.download = filename
       link.click()
       window.URL.revokeObjectURL(url)
       Message.success('导出成功')
@@ -228,12 +289,6 @@ export default {
 </script>
 
 <style scoped>
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .search-form {
   margin-bottom: 20px;
 }
@@ -244,6 +299,12 @@ export default {
 
 .summary-card {
   text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.summary-card:hover {
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.15);
 }
 
 .summary-title {
@@ -252,14 +313,26 @@ export default {
   margin-bottom: 10px;
 }
 
+.summary-title i {
+  margin-left: 5px;
+}
+
 .summary-value {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
   color: #303133;
 }
 
-.expand-box {
-  padding: 10px 20px;
-  background-color: #f5f7fa;
+.expand-table {
+  margin-bottom: 10px;
+}
+
+.export-bar {
+  text-align: right;
+  margin-bottom: 20px;
+}
+
+.stats-table {
+  margin-top: 20px;
 }
 </style>
