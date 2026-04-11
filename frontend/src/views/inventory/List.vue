@@ -45,6 +45,12 @@
             ¥{{ row.priceExclTax }}
           </template>
         </el-table-column>
+        <el-table-column prop="packagePrice" label="套餐金额" width="100">
+          <template slot-scope="{ row }">
+            <span v-if="row.packagePrice">¥{{ row.packagePrice }}</span>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="quantity" label="库存" width="80" />
         <el-table-column prop="goodsValue" label="货值" width="120">
           <template slot-scope="{ row }">

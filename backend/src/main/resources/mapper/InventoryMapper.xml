@@ -12,6 +12,7 @@
         <result column="price_excl_tax" property="priceExclTax"/>
         <result column="guide_price" property="guidePrice"/>
         <result column="min_price" property="minPrice"/>
+        <result column="package_price" property="packagePrice"/>
         <result column="quantity" property="quantity"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
@@ -27,6 +28,7 @@
         <result column="price_excl_tax" property="priceExclTax"/>
         <result column="guide_price" property="guidePrice"/>
         <result column="min_price" property="minPrice"/>
+        <result column="package_price" property="packagePrice"/>
         <result column="quantity" property="quantity"/>
         <result column="goods_value" property="goodsValue"/>
         <result column="total_weight" property="totalWeight"/>
@@ -43,6 +45,7 @@
             price_excl_tax,
             guide_price,
             min_price,
+            package_price,
             quantity,
             quantity * price_excl_tax AS goods_value,
             quantity * weight_kg AS total_weight
@@ -69,6 +72,7 @@
             price_excl_tax,
             guide_price,
             min_price,
+            package_price,
             quantity,
             quantity * price_excl_tax AS goods_value,
             quantity * weight_kg AS total_weight

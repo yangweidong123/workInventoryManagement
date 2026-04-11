@@ -30,6 +30,9 @@
         <el-form-item label="市场最低控价(￥)" prop="minPrice">
           <el-input-number v-model="form.minPrice" :precision="2" :step="100" :min="0" style="width: 100%" />
         </el-form-item>
+        <el-form-item label="套餐金额(￥)" prop="packagePrice">
+          <el-input-number v-model="form.packagePrice" :precision="2" :step="100" :min="0" style="width: 100%" />
+        </el-form-item>
         <el-form-item label="数量" prop="quantity">
           <el-input-number v-model="form.quantity" :step="1" :min="0" style="width: 100%" />
         </el-form-item>
@@ -67,6 +70,7 @@ export default {
         priceExclTax: null,
         guidePrice: null,
         minPrice: null,
+        packagePrice: null,
         quantity: 0,
         images: []
       },
@@ -100,6 +104,7 @@ export default {
         this.form.priceExclTax = data.priceExclTax
         this.form.guidePrice = data.guidePrice
         this.form.minPrice = data.minPrice
+        this.form.packagePrice = data.packagePrice
         this.form.quantity = data.quantity
         this.form.images = data.images || []
       }

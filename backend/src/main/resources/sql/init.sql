@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS inventory (
     price_excl_tax DECIMAL(10,2) NOT NULL COMMENT '不含税拿货价',
     guide_price DECIMAL(10,2) NOT NULL COMMENT '市场指导价',
     min_price DECIMAL(10,2) NOT NULL COMMENT '市场最低控价',
+    package_price DECIMAL(10,2) COMMENT '套餐金额',
     quantity INT NOT NULL DEFAULT 0 COMMENT '数量',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
