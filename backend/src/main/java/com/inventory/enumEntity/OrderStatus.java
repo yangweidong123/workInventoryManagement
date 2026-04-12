@@ -1,4 +1,4 @@
-package com.inventory.enum;
+package com.inventory.enumEntity;
 
 public enum OrderStatus {
     PENDING("待处理"),

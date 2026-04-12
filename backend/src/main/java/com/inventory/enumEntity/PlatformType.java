@@ -1,4 +1,4 @@
-package com.inventory.enum;
+package com.inventory.enumEntity;
 
 public enum PlatformType {
     XIAOHONGSHU("小红书"),
