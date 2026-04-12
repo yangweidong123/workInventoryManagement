@@ -23,6 +23,16 @@
           <i class="el-icon-data-analysis"></i>
           <span slot="title">统计报表</span>
         </el-menu-item>
+        <el-submenu index="/platform">
+          <template slot="title">
+            <i class="el-icon-connection"></i>
+            <span>平台对接</span>
+          </template>
+          <el-menu-item index="/platform-config">平台配置</el-menu-item>
+          <el-menu-item index="/sku-mapping">SKU映射</el-menu-item>
+          <el-menu-item index="/sync-log">同步日志</el-menu-item>
+          <el-menu-item index="/monitor">监控面板</el-menu-item>
+        </el-submenu>
       </el-menu>
     </el-aside>
     <el-container>

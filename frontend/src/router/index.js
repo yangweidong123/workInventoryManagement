@@ -54,6 +54,26 @@ const routes = [
         path: '/stats',
         name: 'Stats',
         component: () => import('@/views/stats/List.vue')
+      },
+      {
+        path: '/platform-config',
+        name: 'PlatformConfig',
+        component: () => import('@/views/platform/ConfigList.vue')
+      },
+      {
+        path: '/sku-mapping',
+        name: 'SkuMapping',
+        component: () => import('@/views/sku-mapping/MappingList.vue')
+      },
+      {
+        path: '/sync-log',
+        name: 'SyncLog',
+        component: () => import('@/views/sync-log/LogList.vue')
+      },
+      {
+        path: '/monitor',
+        name: 'Monitor',
+        component: () => import('@/views/monitor/Dashboard.vue')
       }
     ]
   }
