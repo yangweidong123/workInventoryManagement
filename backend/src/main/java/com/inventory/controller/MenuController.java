@@ -41,7 +41,7 @@ public class MenuController {
 
     @DeleteMapping("/{id}")
     @RequirePermission("system:menu:delete")
-   公众Result<Void> delete(@PathVariable Long id) {
+    public Result<Void> delete(@PathVariable Long id) {
         menuService.delete(id);
         return Result.success(null);
     }
