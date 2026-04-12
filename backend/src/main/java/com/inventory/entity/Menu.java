@@ -8,29 +8,33 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-@TableName("sys_user")
-public class User {
+@TableName("sys_menu")
+public class Menu {
 
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private String username;
+    private Long parentId;
 
-    private String password;
+    private String name;
 
-    private String nickname;
+    private String type;
 
-    private String phone;
+    private String path;
 
-    private String email;
+    private String component;
+
+    private String icon;
+
+    private Integer sort;
+
+    private String permission;
 
     private String status;
-
-    private Integer isAdmin;
 
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;
 
-    private List<Role> roles;
+    private List<Menu> children;
 }

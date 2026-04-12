@@ -5,32 +5,27 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
-@TableName("sys_user")
-public class User {
+@TableName("sys_audit_log")
+public class AuditLog {
 
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    private Long userId;
+
     private String username;
 
-    private String password;
+    private String operation;
 
-    private String nickname;
+    private String content;
 
-    private String phone;
+    private String method;
 
-    private String email;
+    private String ip;
 
-    private String status;
-
-    private Integer isAdmin;
+    private String userAgent;
 
     private LocalDateTime createTime;
-
-    private LocalDateTime updateTime;
-
-    private List<Role> roles;
 }

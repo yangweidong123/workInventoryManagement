@@ -33,6 +33,16 @@
           <el-menu-item index="/sync-log">同步日志</el-menu-item>
           <el-menu-item index="/monitor">监控面板</el-menu-item>
         </el-submenu>
+        <el-submenu index="/system">
+          <template slot="title">
+            <i class="el-icon-setting"></i>
+            <span>系统管理</span>
+          </template>
+          <el-menu-item index="/system/user">用户管理</el-menu-item>
+          <el-menu-item index="/system/role">角色管理</el-menu-item>
+          <el-menu-item index="/system/audit">审计日志</el-menu-item>
+          <el-menu-item index="/system/monitor">系统监控</el-menu-item>
+        </el-submenu>
       </el-menu>
     </el-aside>
     <el-container>

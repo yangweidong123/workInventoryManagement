@@ -3,12 +3,12 @@ package com.inventory.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.inventory.entity.User;
+import com.inventory.entity.Role;
 import org.apache.ibatis.annotations.Param;
 
-public interface UserMapper extends BaseMapper<User> {
+public interface RoleMapper extends BaseMapper<Role> {
 
-    User selectByUsername(@Param("username") String username);
+    IPage<Role> selectPageList(Page<?> page, @Param("query") String keyword);
 
-    IPage<User> selectPageList(Page<?> page, @Param("keyword") String keyword);
+    int countByCode(@Param("code") String code);
 }

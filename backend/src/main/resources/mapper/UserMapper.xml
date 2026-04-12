@@ -7,15 +7,29 @@
         <result column="username" property="username"/>
         <result column="password" property="password"/>
         <result column="nickname" property="nickname"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
         <result column="status" property="status"/>
+        <result column="is_admin" property="isAdmin"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
 
     <select id="selectByUsername" resultMap="BaseResultMap">
-        SELECT id, username, password, nickname, status, create_time, update_time
+        SELECT id, username, password, nickname, phone, email, status, is_admin, create_time, update_time
         FROM sys_user
         WHERE username = #{username}
+    </select>
+
+    <select id="selectPageList" resultMap="BaseResultMap">
+        SELECT id, username, password, nickname, phone, email, status, is_admin, create_time, update_time
+        FROM sys_user
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (username LIKE CONCAT('%', #{keyword}, '%') OR nickname LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY id ASC
     </select>
 
 </mapper>

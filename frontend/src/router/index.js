@@ -74,6 +74,26 @@ const routes = [
         path: '/monitor',
         name: 'Monitor',
         component: () => import('@/views/monitor/Dashboard.vue')
+      },
+      {
+        path: '/system/user',
+        name: 'SystemUser',
+        component: () => import('@/views/system/user/UserList.vue')
+      },
+      {
+        path: '/system/role',
+        name: 'SystemRole',
+        component: () => import('@/views/system/role/RoleList.vue')
+      },
+      {
+        path: '/system/audit',
+        name: 'SystemAudit',
+        component: () => import('@/views/system/audit/AuditLogList.vue')
+      },
+      {
+        path: '/system/monitor',
+        name: 'SystemMonitor',
+        component: () => import('@/views/system/monitor/SystemMonitor.vue')
       }
     ]
   }
