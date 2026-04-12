@@ -4,19 +4,24 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.inventory.dto.*;
+import com.inventory.entity.DailyStats;
 import com.inventory.entity.Inventory;
 import com.inventory.entity.Package;
 import com.inventory.entity.PackageItem;
+import com.inventory.mapper.DailyStatsMapper;
 import com.inventory.mapper.InventoryMapper;
 import com.inventory.mapper.PackageItemMapper;
 import com.inventory.mapper.PackageMapper;
 import com.inventory.service.PackageService;
+import com.inventory.service.PackageSoldRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +39,12 @@ public class PackageServiceImpl implements PackageService {
 
     @Autowired
     private InventoryMapper inventoryMapper;
+
+    @Autowired
+    private DailyStatsMapper dailyStatsMapper;
+
+    @Autowired
+    private PackageSoldRecordService packageSoldRecordService;
 
     @Override
     public IPage<PackageDTO> page(PackageQuery query) {
@@ -60,6 +71,7 @@ public class PackageServiceImpl implements PackageService {
                 itemDto.setInventoryName(inventory.getName());
                 itemDto.setStyleNo(inventory.getStyleNo());
                 itemDto.setPriceExclTax(inventory.getPriceExclTax());
+                itemDto.setGuidePrice(inventory.getGuidePrice());
                 itemDto.setQuantity(item.getQuantity());
                 itemDto.setSubtotal(inventory.getPriceExclTax().multiply(new BigDecimal(item.getQuantity())));
                 itemDTOs.add(itemDto);
@@ -172,6 +184,61 @@ public class PackageServiceImpl implements PackageService {
             item.setInventoryId(itemDto.getInventoryId());
             item.setQuantity(itemDto.getQuantity());
             packageItemMapper.insert(item);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void sell(Long id, Integer quantity) {
+        Package pkg = packageMapper.selectById(id);
+        if (pkg == null) {
+            throw new RuntimeException("套餐不存在");
+        }
+
+        List<PackageItem> items = packageItemMapper.selectByPackageId(id);
+        if (items == null || items.isEmpty()) {
+            throw new RuntimeException("套餐内没有商品");
+        }
+
+        for (PackageItem pkgItem : items) {
+            Inventory inventory = inventoryMapper.selectById(pkgItem.getInventoryId());
+            if (inventory == null) {
+                throw new RuntimeException("商品不存在");
+            }
+
+            int requiredQty = pkgItem.getQuantity() * quantity;
+            if (inventory.getQuantity() < requiredQty) {
+                throw new RuntimeException("商品【" + inventory.getName() + "】库存不足，需要" + requiredQty + "，实际库存" + inventory.getQuantity());
+            }
+
+            inventory.setQuantity(inventory.getQuantity() - requiredQty);
+            inventoryMapper.updateById(inventory);
+        }
+
+        pkg.setSoldQuantity((pkg.getSoldQuantity() == null ? 0 : pkg.getSoldQuantity()) + quantity);
+        packageMapper.updateById(pkg);
+
+        packageSoldRecordService.recordSale(pkg.getId(), pkg.getName(), quantity, pkg.getTotalPrice(), pkg.getTotalPrice().multiply(new BigDecimal(quantity)), null);
+
+        updateDailyStats(LocalDate.now(), quantity, pkg.getTotalPrice().multiply(new BigDecimal(quantity)));
+    }
+
+    private void updateDailyStats(LocalDate date, Integer soldCount, BigDecimal soldAmount) {
+        DailyStats stats = dailyStatsMapper.selectByDate(date);
+        if (stats == null) {
+            stats = new DailyStats();
+            stats.setStatDate(date);
+            stats.setInventoryInCount(0);
+            stats.setInventoryInAmount(BigDecimal.ZERO);
+            stats.setInventoryOutCount(0);
+            stats.setInventoryOutAmount(BigDecimal.ZERO);
+            stats.setPackageSoldCount(soldCount);
+            stats.setPackageSoldAmount(soldAmount);
+            dailyStatsMapper.insert(stats);
+        } else {
+            stats.setPackageSoldCount(stats.getPackageSoldCount() + soldCount);
+            stats.setPackageSoldAmount(stats.getPackageSoldAmount().add(soldAmount));
+            dailyStatsMapper.updateById(stats);
         }
     }
 }

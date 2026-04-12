@@ -30,6 +30,8 @@ public class Inventory {
 
     private BigDecimal minPrice;
 
+    private BigDecimal packagePrice;
+
     private Integer quantity;
 
     private LocalDateTime createTime;

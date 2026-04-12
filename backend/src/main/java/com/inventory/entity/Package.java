@@ -22,6 +22,8 @@ public class Package {
 
     private BigDecimal profitRate;
 
+    private Integer soldQuantity;
+
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;

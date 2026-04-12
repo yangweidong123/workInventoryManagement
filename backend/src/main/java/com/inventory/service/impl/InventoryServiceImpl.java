@@ -60,6 +60,7 @@ public class InventoryServiceImpl implements InventoryService {
         entity.setPriceExclTax(dto.getPriceExclTax());
         entity.setGuidePrice(dto.getGuidePrice());
         entity.setMinPrice(dto.getMinPrice());
+        entity.setPackagePrice(dto.getPackagePrice());
         entity.setQuantity(dto.getQuantity());
         inventoryMapper.insert(entity);
 
@@ -82,6 +83,7 @@ public class InventoryServiceImpl implements InventoryService {
         entity.setPriceExclTax(dto.getPriceExclTax());
         entity.setGuidePrice(dto.getGuidePrice());
         entity.setMinPrice(dto.getMinPrice());
+        entity.setPackagePrice(dto.getPackagePrice());
         entity.setQuantity(dto.getQuantity());
         inventoryMapper.updateById(entity);
 

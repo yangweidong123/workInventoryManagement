@@ -1,16 +1,16 @@
 <template>
   <div class="package-form">
     <el-card>
-      <template #header>
+      <div slot="header">
         <span>{{ isEdit ? '编辑套餐' : '新增套餐' }}</span>
-      </template>
+      </div>
 
       <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
         <el-form-item label="套餐名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入套餐名称" />
         </el-form-item>
         <el-form-item label="套餐总价" prop="totalPrice">
-          <el-input-number v-model="form.totalPrice" :precision="2" :step="100" :min="0" style="width: 100%" @change="calculateProfitRate" />
+          <el-input-number v-model="form.totalPrice" :precision="2" :step="100" :min="0" style="width: 100%" />
         </el-form-item>
 
         <el-form-item label="选择商品">
@@ -19,28 +19,32 @@
             <el-table :data="form.items" stripe size="small" class="items-table">
               <el-table-column prop="inventoryName" label="商品名称" />
               <el-table-column prop="styleNo" label="款号" width="120" />
+              <el-table-column prop="guidePrice" label="指导价" width="100">
+                <template slot-scope="{ row }">
+                  ¥{{ row.guidePrice }}
+                </template>
+              </el-table-column>
               <el-table-column prop="priceExclTax" label="拿货价" width="100">
-                <template #default="{ row }">
+                <template slot-scope="{ row }">
                   ¥{{ row.priceExclTax }}
                 </template>
               </el-table-column>
               <el-table-column label="数量" width="150">
-                <template #default="{ row, $index }">
+                <template slot-scope="{ row, $index }">
                   <el-input-number
                     v-model="row.quantity"
                     :min="1"
                     size="small"
-                    @change="calculateProfitRate"
                   />
                 </template>
               </el-table-column>
               <el-table-column label="小计" width="100">
-                <template #default="{ row }">
+                <template slot-scope="{ row }">
                   ¥{{ (row.priceExclTax * row.quantity).toFixed(2) }}
                 </template>
               </el-table-column>
               <el-table-column label="操作" width="80">
-                <template #default="{ row, $index }">
+                <template slot-scope="{ row, $index }">
                   <el-button type="danger" size="small" link @click="removeItem($index)">删除</el-button>
                 </template>
               </el-table-column>
@@ -48,12 +52,28 @@
           </div>
         </el-form-item>
 
-        <el-form-item label="成本总价">
-          <span class="cost-price">¥{{ costPrice.toFixed(2) }}</span>
-        </el-form-item>
-        <el-form-item label="毛利率">
-          <span :class="profitRateClass">{{ profitRate.toFixed(2) }}%</span>
-        </el-form-item>
+        <el-card class="stats-card" v-if="form.items.length > 0">
+          <el-row :gutter="20">
+            <el-col :span="8">
+              <div class="stat-item">
+                <div class="stat-label">市场指导价总数</div>
+                <div class="stat-value">¥{{ guidePriceTotal.toFixed(2) }}</div>
+              </div>
+            </el-col>
+            <el-col :span="8">
+              <div class="stat-item">
+                <div class="stat-label">不含税/运拿货价总数</div>
+                <div class="stat-value">¥{{ costPrice.toFixed(2) }}</div>
+              </div>
+            </el-col>
+            <el-col :span="8">
+              <div class="stat-item">
+                <div class="stat-label">毛利率</div>
+                <div class="stat-value" :class="profitRateClass">{{ profitRate.toFixed(2) }}%</div>
+              </div>
+            </el-col>
+          </el-row>
+        </el-card>
 
         <el-form-item>
           <el-button type="primary" @click="submit" :loading="submitting">保存</el-button>
@@ -62,7 +82,7 @@
       </el-form>
     </el-card>
 
-    <el-dialog v-model="showGoodsDialog" title="选择商品" width="800px">
+    <el-dialog title="选择商品" :visible.sync="showGoodsDialog" width="800px">
       <el-form :inline="true" :model="goodsQuery" class="search-form">
         <el-form-item label="款号">
           <el-input v-model="goodsQuery.styleNo" placeholder="请输入款号" clearable />
@@ -79,145 +99,144 @@
         <el-table-column type="selection" width="55" />
         <el-table-column prop="styleNo" label="款号" width="120" />
         <el-table-column prop="name" label="品名" />
+        <el-table-column prop="guidePrice" label="指导价" width="100">
+          <template slot-scope="{ row }">
+            ¥{{ row.guidePrice }}
+          </template>
+        </el-table-column>
         <el-table-column prop="priceExclTax" label="拿货价" width="100">
-          <template #default="{ row }">
+          <template slot-scope="{ row }">
             ¥{{ row.priceExclTax }}
           </template>
         </el-table-column>
         <el-table-column prop="quantity" label="库存" width="80" />
       </el-table>
 
-      <template #footer>
+      <div slot="footer">
         <el-button @click="showGoodsDialog = false">取消</el-button>
         <el-button type="primary" @click="confirmSelect">确定</el-button>
-      </template>
+      </div>
     </el-dialog>
   </div>
 </template>
 
-<script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { usePackageStore } from '@/stores/package'
+<script>
+import { mapState, mapActions } from 'vuex'
 import { getInventoryList } from '@/api/package'
-import { ElMessage } from 'element-plus'
+import { Message } from 'element-ui'
 
-const router = useRouter()
-const route = useRoute()
-const store = usePackageStore()
-
-const formRef = ref()
-const submitting = ref(false)
-const isEdit = computed(() => !!route.params.id)
-
-const form = reactive({
-  name: '',
-  totalPrice: 0,
-  items: []
-})
-
-const rules = {
-  name: [{ required: true, message: '请输入套餐名称', trigger: 'blur' }],
-  totalPrice: [{ required: true, message: '请输入套餐总价', trigger: 'blur' }]
-}
-
-const showGoodsDialog = ref(false)
-const goodsQuery = reactive({ current: 1, size: 100, styleNo: '', name: '' })
-const goodsList = ref([])
-const selectedGoods = ref([])
-
-const costPrice = computed(() => {
-  return form.items.reduce((sum, item) => sum + item.priceExclTax * item.quantity, 0)
-})
-
-const profitRate = computed(() => {
-  if (costPrice.value <= 0) return 0
-  return ((form.totalPrice - costPrice.value) / costPrice.value) * 100
-})
-
-const profitRateClass = computed(() => {
-  if (profitRate.value < 0) return 'profit-rate negative'
-  if (profitRate.value < 10) return 'profit-rate low'
-  return 'profit-rate normal'
-})
-
-const calculateProfitRate = () => {
-}
-
-const searchGoods = async () => {
-  const res = await getInventoryList(goodsQuery)
-  goodsList.value = res.data.records
-}
-
-const handleSelectionChange = (selection) => {
-  selectedGoods.value = selection
-}
-
-const confirmSelect = () => {
-  for (const goods of selectedGoods.value) {
-    if (!form.items.find(item => item.inventoryId === goods.id)) {
-      form.items.push({
-        inventoryId: goods.id,
-        inventoryName: goods.name,
-        styleNo: goods.styleNo,
-        priceExclTax: goods.priceExclTax,
-        quantity: 1
-      })
+export default {
+  name: 'PackageForm',
+  data() {
+    return {
+      form: {
+        name: '',
+        totalPrice: 0,
+        items: []
+      },
+      rules: {
+        name: [{ required: true, message: '请输入套餐名称', trigger: 'blur' }],
+        totalPrice: [{ required: true, message: '请输入套餐总价', trigger: 'blur' }]
+      },
+      submitting: false,
+      showGoodsDialog: false,
+      goodsQuery: { current: 1, size: 100, styleNo: '', name: '' },
+      goodsList: [],
+      selectedGoods: []
+    }
+  },
+  computed: {
+    ...mapState('package', ['currentItem']),
+    isEdit() {
+      return !!this.$route.params.id
+    },
+    costPrice() {
+      return this.form.items.reduce((sum, item) => sum + item.priceExclTax * item.quantity, 0)
+    },
+    guidePriceTotal() {
+      return this.form.items.reduce((sum, item) => sum + (item.guidePrice || 0) * item.quantity, 0)
+    },
+    profitRate() {
+      if (this.costPrice <= 0) return 0
+      return ((this.form.totalPrice - this.costPrice) / this.costPrice) * 100
+    },
+    profitRateClass() {
+      if (this.profitRate < 0) return 'negative'
+      if (this.profitRate < 10) return 'low'
+      return 'normal'
+    }
+  },
+  async mounted() {
+    if (this.isEdit) {
+      await this.fetchById(this.$route.params.id)
+      const data = this.currentItem
+      if (data) {
+        this.form.name = data.name
+        this.form.totalPrice = data.totalPrice
+        this.form.items = data.items || []
+      }
+    }
+    this.searchGoods()
+  },
+  methods: {
+    ...mapActions('package', ['fetchById', 'create', 'update']),
+    async searchGoods() {
+      const res = await getInventoryList(this.goodsQuery)
+      this.goodsList = res.data.records
+    },
+    handleSelectionChange(selection) {
+      this.selectedGoods = selection
+    },
+    confirmSelect() {
+      for (const goods of this.selectedGoods) {
+        if (!this.form.items.find(item => item.inventoryId === goods.id)) {
+          this.form.items.push({
+            inventoryId: goods.id,
+            inventoryName: goods.name,
+            styleNo: goods.styleNo,
+            priceExclTax: goods.priceExclTax,
+            guidePrice: goods.guidePrice,
+            quantity: 1
+          })
+        }
+      }
+      this.showGoodsDialog = false
+    },
+    removeItem(index) {
+      this.form.items.splice(index, 1)
+    },
+    async submit() {
+      try {
+        await this.$refs.formRef.validate()
+        if (this.form.items.length === 0) {
+          Message.warning('请至少选择一个商品')
+          return
+        }
+        if (this.profitRate < 0) {
+          Message.warning('套餐总价不能低于成本价')
+          return
+        }
+        this.submitting = true
+        if (this.isEdit) {
+          await this.update({ id: this.$route.params.id, data: this.form })
+          Message.success('修改成功')
+        } else {
+          await this.create(this.form)
+          Message.success('新增成功')
+        }
+        this.goBack()
+      } catch (e) {
+        if (e !== false) {
+          Message.error(this.isEdit ? '修改失败' : '新增失败')
+        }
+      } finally {
+        this.submitting = false
+      }
+    },
+    goBack() {
+      this.$router.push('/package')
     }
   }
-  showGoodsDialog.value = false
-  calculateProfitRate()
-}
-
-const removeItem = (index) => {
-  form.items.splice(index, 1)
-  calculateProfitRate()
-}
-
-onMounted(async () => {
-  if (isEdit.value) {
-    await store.fetchById(route.params.id)
-    const data = store.currentItem
-    if (data) {
-      form.name = data.name
-      form.totalPrice = data.totalPrice
-      form.items = data.items || []
-    }
-  }
-  await searchGoods()
-})
-
-const submit = async () => {
-  try {
-    await formRef.value.validate()
-    if (form.items.length === 0) {
-      ElMessage.warning('请至少选择一个商品')
-      return
-    }
-    if (profitRate.value < 0) {
-      ElMessage.warning('套餐总价不能低于成本价')
-      return
-    }
-    submitting.value = true
-    if (isEdit.value) {
-      await store.update(route.params.id, form)
-      ElMessage.success('修改成功')
-    } else {
-      await store.create(form)
-      ElMessage.success('新增成功')
-    }
-    goBack()
-  } catch (e) {
-    if (e !== false) {
-      ElMessage.error(isEdit.value ? '修改失败' : '新增失败')
-    }
-  } finally {
-    submitting.value = false
-  }
-}
-
-const goBack = () => {
-  router.push('/package')
 }
 </script>
 
@@ -232,25 +251,36 @@ const goBack = () => {
   overflow-y: auto;
 }
 
-.cost-price {
-  font-weight: bold;
-  color: #409eff;
+.stats-card {
+  margin-bottom: 20px;
+  background-color: #f5f7fa;
 }
 
-.profit-rate {
-  font-weight: bold;
-  font-size: 18px;
+.stat-item {
+  text-align: center;
 }
 
-.profit-rate.negative {
+.stat-label {
+  font-size: 14px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: bold;
+  color: #303133;
+}
+
+.stat-value.negative {
   color: #f56c6c;
 }
 
-.profit-rate.low {
+.stat-value.low {
   color: #e6a23c;
 }
 
-.profit-rate.normal {
+.stat-value.normal {
   color: #67c23a;
 }
 </style>

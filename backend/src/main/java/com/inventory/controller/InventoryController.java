@@ -2,6 +2,7 @@ package com.inventory.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.inventory.dto.*;
+import com.inventory.service.ExcelExportService;
 import com.inventory.service.ExcelImportService;
 import com.inventory.service.ImageService;
 import com.inventory.service.InventoryService;
@@ -9,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/inventory")
@@ -22,6 +26,9 @@ public class InventoryController {
 
     @Autowired
     private ExcelImportService excelImportService;
+
+    @Autowired
+    private ExcelExportService excelExportService;
 
     @GetMapping
     public Result<IPage<InventoryDTO>> list(InventoryQuery query) {
@@ -93,5 +100,14 @@ public class InventoryController {
             @PathVariable Long imageId) {
         imageService.setCover(inventoryId, imageId);
         return Result.success("设置成功", null);
+    }
+
+    @GetMapping("/export")
+    public void export(HttpServletResponse response, @RequestParam(required = false) List<Long> ids) {
+        try {
+            excelExportService.exportInventory(response, ids);
+        } catch (Exception e) {
+            throw new RuntimeException("导出失败: " + e.getMessage());
+        }
     }
 }

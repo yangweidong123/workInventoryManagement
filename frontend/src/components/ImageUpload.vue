@@ -8,8 +8,8 @@
     >
       <el-button type="primary" size="small">上传图片</el-button>
     </el-upload>
-    <div class="image-list" v-if="modelValue && modelValue.length">
-      <div class="image-item" v-for="(img, index) in modelValue" :key="index">
+    <div class="image-list" v-if="value && value.length">
+      <div class="image-item" v-for="(img, index) in value" :key="index">
         <el-image
           :src="img.imageUrl"
           fit="cover"
@@ -24,47 +24,47 @@
   </div>
 </template>
 
-<script setup>
-import { ElMessage } from 'element-plus'
+<script>
+import { Message } from 'element-ui'
 
-const props = defineProps({
-  modelValue: {
-    type: Array,
-    default: () => []
-  }
-})
-
-const emit = defineEmits(['update:modelValue'])
-
-const handleChange = (file) => {
-  const isImage = file.raw.type.startsWith('image/')
-  if (!isImage) {
-    ElMessage.error('只能上传图片文件')
-    return
-  }
-
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const newImage = {
-      imageUrl: e.target.result,
-      sort: props.modelValue.length
+export default {
+  name: 'ImageUpload',
+  props: {
+    value: {
+      type: Array,
+      default: () => []
     }
-    emit('update:modelValue', [...props.modelValue, newImage])
+  },
+  methods: {
+    handleChange(file) {
+      const isImage = file.raw.type.startsWith('image/')
+      if (!isImage) {
+        Message.error('只能上传图片文件')
+        return
+      }
+
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const newImage = {
+          imageUrl: e.target.result,
+          sort: this.value.length
+        }
+        this.$emit('input', [...this.value, newImage])
+      }
+      reader.readAsDataURL(file.raw)
+    },
+    setCover(index) {
+      const images = [...this.value]
+      const [image] = images.splice(index, 1)
+      images.unshift(image)
+      this.$emit('input', images)
+    },
+    removeImage(index) {
+      const images = [...this.value]
+      images.splice(index, 1)
+      this.$emit('input', images)
+    }
   }
-  reader.readAsDataURL(file.raw)
-}
-
-const setCover = (index) => {
-  const images = [...props.modelValue]
-  const [image] = images.splice(index, 1)
-  images.unshift(image)
-  emit('update:modelValue', images)
-}
-
-const removeImage = (index) => {
-  const images = [...props.modelValue]
-  images.splice(index, 1)
-  emit('update:modelValue', images)
 }
 </script>
 
@@ -85,7 +85,7 @@ const removeImage = (index) => {
   text-align: center;
 }
 
-.image-item .el-image {
+.image-item >>> .el-image {
   width: 100px;
   height: 100px;
   border-radius: 4px;

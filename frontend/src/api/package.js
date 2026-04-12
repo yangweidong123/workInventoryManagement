@@ -53,3 +53,20 @@ export function getInventoryList(params) {
     params
   })
 }
+
+export function exportExcel(ids) {
+  return request({
+    url: '/package/export',
+    method: 'get',
+    params: { ids },
+    responseType: 'blob'
+  })
+}
+
+export function sell(id, quantity) {
+  return request({
+    url: `/package/${id}/sell`,
+    method: 'post',
+    data: { quantity }
+  })
+}

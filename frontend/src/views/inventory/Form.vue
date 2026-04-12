@@ -1,9 +1,9 @@
 <template>
   <div class="inventory-form">
     <el-card>
-      <template #header>
+      <div slot="header">
         <span>{{ isEdit ? '编辑商品' : '新增商品' }}</span>
-      </template>
+      </div>
 
       <el-form ref="formRef" :model="form" :rules="rules" label-width="140px">
         <el-form-item label="款号" prop="styleNo">
@@ -30,11 +30,14 @@
         <el-form-item label="市场最低控价(￥)" prop="minPrice">
           <el-input-number v-model="form.minPrice" :precision="2" :step="100" :min="0" style="width: 100%" />
         </el-form-item>
+        <el-form-item label="套餐金额(￥)" prop="packagePrice">
+          <el-input-number v-model="form.packagePrice" :precision="2" :step="100" :min="0" style="width: 100%" />
+        </el-form-item>
         <el-form-item label="数量" prop="quantity">
           <el-input-number v-model="form.quantity" :step="1" :min="0" style="width: 100%" />
         </el-form-item>
         <el-form-item label="商品图片">
-          <ImageUpload v-model="form.images" />
+          <image-upload v-model="form.images" />
         </el-form-item>
 
         <el-form-item>
@@ -46,85 +49,93 @@
   </div>
 </template>
 
-<script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useInventoryStore } from '@/stores/inventory'
+<script>
+import { mapState, mapActions } from 'vuex'
 import ImageUpload from '@/components/ImageUpload.vue'
-import { ElMessage } from 'element-plus'
+import { Message } from 'element-ui'
 
-const router = useRouter()
-const route = useRoute()
-const store = useInventoryStore()
-
-const formRef = ref()
-const submitting = ref(false)
-const isEdit = computed(() => !!route.params.id)
-
-const form = reactive({
-  styleNo: '',
-  name: '',
-  sizeMm: '',
-  weightKg: null,
-  boxSpec: 1,
-  priceExclTax: null,
-  guidePrice: null,
-  minPrice: null,
-  quantity: 0,
-  images: []
-})
-
-const rules = {
-  styleNo: [{ required: true, message: '请输入款号', trigger: 'blur' }],
-  name: [{ required: true, message: '请输入品名', trigger: 'blur' }],
-  priceExclTax: [{ required: true, message: '请输入拿货价', trigger: 'blur' }],
-  guidePrice: [{ required: true, message: '请输入指导价', trigger: 'blur' }],
-  minPrice: [{ required: true, message: '请输入最低控价', trigger: 'blur' }],
-  quantity: [{ required: true, message: '请输入数量', trigger: 'blur' }]
-}
-
-onMounted(async () => {
-  if (isEdit.value) {
-    await store.fetchById(route.params.id)
-    const data = store.currentItem
-    if (data) {
-      form.styleNo = data.styleNo
-      form.name = data.name
-      form.sizeMm = data.sizeMm
-      form.weightKg = data.weightKg
-      form.boxSpec = data.boxSpec
-      form.priceExclTax = data.priceExclTax
-      form.guidePrice = data.guidePrice
-      form.minPrice = data.minPrice
-      form.quantity = data.quantity
-      form.images = data.images || []
+export default {
+  name: 'InventoryForm',
+  components: {
+    ImageUpload
+  },
+  data() {
+    return {
+      form: {
+        styleNo: '',
+        name: '',
+        sizeMm: '',
+        weightKg: null,
+        boxSpec: 1,
+        priceExclTax: null,
+        guidePrice: null,
+        minPrice: null,
+        packagePrice: null,
+        quantity: 0,
+        images: []
+      },
+      rules: {
+        styleNo: [{ required: true, message: '请输入款号', trigger: 'blur' }],
+        name: [{ required: true, message: '请输入品名', trigger: 'blur' }],
+        priceExclTax: [{ required: true, message: '请输入拿货价', trigger: 'blur' }],
+        guidePrice: [{ required: true, message: '请输入指导价', trigger: 'blur' }],
+        minPrice: [{ required: true, message: '请输入最低控价', trigger: 'blur' }],
+        quantity: [{ required: true, message: '请输入数量', trigger: 'blur' }]
+      },
+      submitting: false
+    }
+  },
+  computed: {
+    ...mapState('inventory', ['currentItem']),
+    isEdit() {
+      return !!this.$route.params.id
+    }
+  },
+  async mounted() {
+    if (this.isEdit) {
+      await this.fetchById(this.$route.params.id)
+      const data = this.currentItem
+      if (data) {
+        this.form.styleNo = data.styleNo
+        this.form.name = data.name
+        this.form.sizeMm = data.sizeMm
+        this.form.weightKg = data.weightKg
+        this.form.boxSpec = data.boxSpec
+        this.form.priceExclTax = data.priceExclTax
+        this.form.guidePrice = data.guidePrice
+        this.form.minPrice = data.minPrice
+        this.form.packagePrice = data.packagePrice
+        this.form.quantity = data.quantity
+        this.form.images = data.images || []
+      }
+    }
+  },
+  methods: {
+    ...mapActions('inventory', ['fetchById', 'create', 'update']),
+    async submit() {
+      try {
+        await this.$refs.formRef.validate()
+        this.submitting = true
+        if (this.isEdit) {
+          await this.update({ id: this.$route.params.id, data: this.form })
+          Message.success('修改成功')
+        } else {
+          await this.create(this.form)
+          Message.success('新增成功')
+        }
+        this.goBack()
+      } catch (e) {
+        if (e !== false) {
+          Message.error(this.isEdit ? '修改失败' : '新增失败')
+        }
+      } finally {
+        this.submitting = false
+      }
+    },
+    goBack() {
+      this.$router.push('/inventory')
     }
   }
-})
-
-const submit = async () => {
-  try {
-    await formRef.value.validate()
-    submitting.value = true
-    if (isEdit.value) {
-      await store.update(route.params.id, form)
-      ElMessage.success('修改成功')
-    } else {
-      await store.create(form)
-      ElMessage.success('新增成功')
-    }
-    goBack()
-  } catch (e) {
-    if (e !== false) {
-      ElMessage.error(isEdit.value ? '修改失败' : '新增失败')
-    }
-  } finally {
-    submitting.value = false
-  }
-}
-
-const goBack = () => {
-  router.push('/inventory')
 }
 </script>
 

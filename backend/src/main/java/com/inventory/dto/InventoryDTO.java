@@ -25,6 +25,8 @@ public class InventoryDTO {
 
     private BigDecimal minPrice;
 
+    private BigDecimal packagePrice;
+
     private Integer quantity;
 
     private List<InventoryImageDTO> images;
