@@ -20,15 +20,9 @@ public class AuditLogServiceImpl implements AuditLogService {
 
     @Override
     public IPage<AuditLog> page(AuditLogQuery query) {
-        AuditLogMapper.AuditLogQuery q = new AuditLogMapper.AuditLogQuery();
-        q.setStartDate(query.getStartDate());
-        q.setEndDate(query.getEndDate());
-        q.setUsername(query.getUsername());
-        q.setOperation(query.getOperation());
-        q.setKeyword(query.getKeyword());
         return auditLogMapper.selectPageList(
             new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(query.getCurrent(), query.getSize()),
-            q
+            query
         );
     }
 
