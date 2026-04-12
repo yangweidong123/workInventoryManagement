@@ -4,7 +4,7 @@ import com.inventory.adapter.PlatformAdapter;
 import com.inventory.dto.Result;
 import com.inventory.dto.StandardOrder;
 import com.inventory.service.OrderProcessService;
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

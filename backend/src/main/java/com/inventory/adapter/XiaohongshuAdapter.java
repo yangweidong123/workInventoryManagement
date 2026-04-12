@@ -3,7 +3,7 @@ package com.inventory.adapter;
 import com.inventory.dto.PlatformCredential;
 import com.inventory.dto.StandardOrder;
 import com.inventory.dto.SyncResult;
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
